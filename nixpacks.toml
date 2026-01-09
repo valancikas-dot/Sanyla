@@ -2,7 +2,12 @@
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["npm install -g pnpm@10.27.0"]
+cmds = [
+  "ls -la",
+  "cat pnpm-lock.yaml | head -5",
+  "npm install -g pnpm@10.27.0",
+  "pnpm install --no-frozen-lockfile"
+]
 
 [phases.build]
 cmds = ["pnpm run build:web"]
