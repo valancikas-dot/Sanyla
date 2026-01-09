@@ -36,7 +36,7 @@ export default function AuthPage() {
       }
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || t('auth.auth_failed'));
+      setError(err.response?.data?.message || t('auth.error.login'));
     } finally {
       setLoading(false);
     }
