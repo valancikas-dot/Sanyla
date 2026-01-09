@@ -6,26 +6,26 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/10">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-blue-600 backdrop-blur-xl border-b border-white/10 shadow-lg">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-white/10 backdrop-blur-sm p-1.5 shadow-xl">
                 <Image 
                   src="/logo.png" 
                   alt="Sanyla" 
-                  width={40} 
-                  height={40}
-                  className="object-contain"
+                  width={48} 
+                  height={48}
+                  className="object-contain drop-shadow-lg"
                 />
               </div>
-              <span className="text-2xl font-bold text-gradient">Sanyla</span>
+              <span className="text-3xl font-bold text-white drop-shadow-lg">Sanyla</span>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/auth" className="btn-ghost">
+              <Link href="/auth" className="px-6 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-semibold">
                 Prisijungti
               </Link>
-              <Link href="/auth" className="btn-primary">
+              <Link href="/auth" className="px-6 py-2.5 bg-white text-purple-600 hover:bg-white/90 rounded-lg transition-all font-semibold shadow-lg">
                 Pradėti Nemokamai
               </Link>
             </div>

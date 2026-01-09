@@ -71,17 +71,17 @@ export default function AuthPage() {
           </div>
 
           {/* Logo */}
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden">
+          <div className="flex items-center justify-center gap-4">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 p-2 flex items-center justify-center overflow-hidden shadow-xl">
               <Image 
                 src="/logo.png" 
                 alt="Sanyla" 
-                width={48} 
-                height={48}
+                width={64} 
+                height={64}
                 className="object-contain"
               />
             </div>
-            <span className="text-3xl font-bold text-gradient">Sanyla</span>
+            <span className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Sanyla</span>
           </div>
 
           {/* Header */}

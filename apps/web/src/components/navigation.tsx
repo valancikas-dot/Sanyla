@@ -57,20 +57,20 @@ export function MainNav() {
   };
 
   return (
-    <nav className="bg-primary text-primary-foreground p-4">
+    <nav className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 shadow-lg">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div 
-          className="flex items-center gap-2 cursor-pointer" 
+          className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity" 
           onClick={() => router.push('/dashboard')}
         >
           <Image 
             src="/logo.png" 
             alt="Sanyla" 
-            width={32} 
-            height={32}
-            className="object-contain"
+            width={48} 
+            height={48}
+            className="object-contain drop-shadow-lg"
           />
-          <h1 className="text-xl font-bold">Sanyla</h1>
+          <h1 className="text-2xl font-bold drop-shadow-md">Sanyla</h1>
         </div>
         <div className="flex items-center gap-4">
           <LanguageSelector />
