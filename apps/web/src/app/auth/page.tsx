@@ -161,7 +161,7 @@ export default function AuthPage() {
                 className="btn-primary w-full group"
               >
                 {loading ? (
-                  t('auth.loading')
+                  t('common.loading')
                 ) : (
                   <>
                     {isLogin ? t('auth.login_button') : t('auth.signup_button')}
