@@ -1,0 +1,52 @@
+{
+  "name": "ai-marketing-autopilot",
+  "version": "1.0.0",
+  "description": "AI-powered marketing automation platform - Generate strategies, content calendars, social posts & Reels scripts",
+  "private": true,
+  "author": "Sanyla",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/sanyla"
+  },
+  "keywords": [
+    "ai",
+    "marketing",
+    "automation",
+    "openai",
+    "gpt-4",
+    "content-generation",
+    "social-media",
+    "nextjs",
+    "nestjs",
+    "typescript"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter web dev & pnpm --filter api start:dev",
+    "build": "pnpm --filter shared build && pnpm --filter api build && pnpm --filter web build",
+    "start": "pnpm --filter api start:prod & pnpm --filter web start",
+    "lint": "pnpm --filter '*' lint",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "db:generate": "cd prisma && pnpm prisma generate",
+    "db:migrate": "cd prisma && pnpm prisma migrate dev",
+    "db:push": "cd prisma && pnpm prisma db push",
+    "db:seed": "cd prisma && pnpm seed",
+    "db:studio": "cd prisma && pnpm prisma studio",
+    "db:reset": "cd prisma && pnpm prisma migrate reset",
+    "docker:up": "docker-compose -f infra/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f infra/docker-compose.yml down",
+    "docker:logs": "docker-compose -f infra/docker-compose.yml logs -f",
+    "setup": "pnpm install && pnpm docker:up && sleep 5 && pnpm db:generate && pnpm db:push && pnpm db:seed",
+    "test": "pnpm --filter '*' test",
+    "test:e2e": "pnpm --filter api test:e2e"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

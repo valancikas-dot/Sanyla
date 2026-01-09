@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  auditLogs   AuditLog[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  projects    Project[]
+
+  @@map("organizations")
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  role           String   @default("owner") // owner, member
+  userId         String
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("memberships")
+}
+
+model Project {
+  id             String   @id @default(cuid())
+  name           String
+  industry       String?
+  country        String?
+  city           String?
+  website        String?
+  offer          String?
+  prices         String?
+  targetAudience String?
+  language       String   @default("en")
+  tone           String   @default("professional")
+  brandColors    String[] // array of hex colors
+  competitors    String?
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assets        Asset[]
+  contentItems  ContentItem[]
+  contentBatches ContentBatch[]
+  scheduleJobs  ScheduleJob[]
+  integrations  Integration[]
+
+  @@map("projects")
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  type      String // logo, image, video
+  filename  String
+  path      String
+  mimeType  String?
+  size      Int?
+  projectId String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("assets")
+}
+
+model ContentItem {
+  id        String   @id @default(cuid())
+  type      String // STRATEGY, CALENDAR, POST, REEL_SCRIPT, INSIGHT
+  title     String?
+  content   Json // flexible JSON content
+  metadata  Json? // additional metadata
+  projectId String
+  batchId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  batch        ContentBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  scheduleJobs ScheduleJob[]
+
+  @@map("content_items")
+}
+
+model ContentBatch {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  projectId   String
+  createdAt   DateTime @default(now())
+
+  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  items   ContentItem[]
+
+  @@map("content_batches")
+}
+
+model ScheduleJob {
+  id             String   @id @default(cuid())
+  scheduledFor   DateTime
+  platform       String // GENERIC, META, TIKTOK, LINKEDIN, YOUTUBE
+  status         String   @default("DRAFT") // DRAFT, SCHEDULED, POSTED, FAILED
+  payload        Json? // exported payload for autopost
+  error          String?
+  contentItemId  String
+  projectId      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  contentItem ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("schedule_jobs")
+}
+
+model Integration {
+  id               String   @id @default(cuid())
+  type             String // GA4, META, TIKTOK, LINKEDIN, YOUTUBE
+  credentials      String? // encrypted JSON
+  config           Json? // additional config
+  status           String   @default("ACTIVE") // ACTIVE, INACTIVE, ERROR
+  lastSyncAt       DateTime?
+  projectId        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("integrations")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  metadata  Json?
+  userId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
