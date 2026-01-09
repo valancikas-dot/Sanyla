@@ -1,8 +1,13 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Sparkles, Zap, Calendar, TrendingUp, Globe, Shield } from 'lucide-react';
+import { LanguageSelector } from '@/lib/i18n/LanguageSelector';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function HomePage() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -22,11 +27,12 @@ export default function HomePage() {
               <span className="text-3xl font-bold text-white drop-shadow-lg">Sanyla</span>
             </div>
             <div className="flex items-center gap-4">
+              <LanguageSelector />
               <Link href="/auth" className="px-6 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-semibold">
-                Prisijungti
+                {t('auth.login_button')}
               </Link>
               <Link href="/auth" className="px-6 py-2.5 bg-white text-purple-600 hover:bg-white/90 rounded-lg transition-all font-semibold shadow-lg">
-                Pradėti Nemokamai
+                {t('auth.signup_button')}
               </Link>
             </div>
           </div>
