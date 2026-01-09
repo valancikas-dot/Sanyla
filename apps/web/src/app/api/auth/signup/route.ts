@@ -41,12 +41,16 @@ export async function POST(req: NextRequest) {
     const org = await prisma.organization.create({
       data: {
         name: `${user.name}'s Organization`,
-        members: {
-          create: {
-            userId: user.id,
-            role: 'OWNER',
-          },
-        },
+        slug: `${user.id}-org`,
+      },
+    });
+
+    // Create membership
+    await prisma.membership.create({
+      data: {
+        userId: user.id,
+        organizationId: org.id,
+        role: 'owner',
       },
     });
 
