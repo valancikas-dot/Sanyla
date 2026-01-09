@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialize OpenAI client
+function getOpenAI() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || '',
+  });
+}
 
 interface ProductAnalysisRequest {
   productUrl?: string;
@@ -23,6 +26,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const openai = getOpenAI();
 
     // Step 1: Analyze product
     const productAnalysisPrompt = `You are a marketing expert AI. Analyze this product and extract key information.
