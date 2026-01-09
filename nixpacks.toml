@@ -3,14 +3,15 @@ nixPkgs = ["nodejs_20"]
 
 [phases.install]
 cmds = [
-  "npm install -g pnpm",
+  "corepack enable",
+  "corepack prepare pnpm@latest --activate",
   "pnpm install --frozen-lockfile"
 ]
 
 [phases.build]
 cmds = [
-  "cd apps/web && pnpm build"
+  "pnpm --filter @marketing-autopilot/web build"
 ]
 
 [start]
-cmd = "cd apps/web && pnpm start"
+cmd = "pnpm --filter @marketing-autopilot/web start"
