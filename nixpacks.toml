@@ -1,18 +1,11 @@
 [phases.setup]
 nixPkgs = ["nodejs_20"]
-aptPkgs = []
 
 [phases.install]
-cmds = [
-  "corepack enable",
-  "corepack prepare pnpm@10.27.0 --activate",
-  "pnpm install"
-]
+cmds = ["npm install -g pnpm@10.27.0"]
 
 [phases.build]
-cmds = [
-  "pnpm --filter @marketing-autopilot/web build"
-]
+cmds = ["pnpm run build:web"]
 
 [start]
-cmd = "pnpm --filter @marketing-autopilot/web start"
+cmd = "pnpm run start:web"
