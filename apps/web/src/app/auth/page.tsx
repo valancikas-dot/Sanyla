@@ -55,7 +55,7 @@ export default function AuthPage() {
       localStorage.setItem('token', res.data.token);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || t('auth.demo_failed'));
+      setError(err.response?.data?.message || t('auth.error.login'));
       setLoading(false);
     }
   };
