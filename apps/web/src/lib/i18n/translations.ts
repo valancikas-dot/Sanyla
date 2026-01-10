@@ -89,7 +89,25 @@ export type TranslationKey =
   | 'ai_video.preview_placeholder'
   | 'ai_video.styles.realistic'
   | 'ai_video.styles.animated'
-  | 'ai_video.styles.cinematic';
+  | 'ai_video.styles.cinematic'
+  // AI Image Sizes
+  | 'ai_image.sizes.square'
+  | 'ai_image.sizes.landscape'
+  | 'ai_image.sizes.portrait'
+  | 'ai_image.sizes.square_desc'
+  | 'ai_image.sizes.landscape_desc'
+  | 'ai_image.sizes.portrait_desc'
+  // Social Platforms
+  | 'social.platforms.facebook'
+  | 'social.platforms.instagram'
+  | 'social.platforms.linkedin'
+  | 'social.platforms.tiktok'
+  // Common Actions
+  | 'common.please_enter'
+  | 'common.failed_download'
+  | 'common.failed_generate'
+  | 'common.active'
+  | 'common.inactive';
 
 type Translations = Record<TranslationKey, string>;
 
@@ -177,6 +195,21 @@ const LITHUANIAN: Translations = {
   'ai_video.styles.realistic': 'Realistinis',
   'ai_video.styles.animated': 'Animuotas',
   'ai_video.styles.cinematic': 'Kinematografinis',
+  'ai_image.sizes.square': 'Kvadratas (1:1)',
+  'ai_image.sizes.landscape': 'Peizažas (16:9)',
+  'ai_image.sizes.portrait': 'Portretas (9:16)',
+  'ai_image.sizes.square_desc': 'Instagram, Facebook',
+  'ai_image.sizes.landscape_desc': 'YouTube, LinkedIn',
+  'ai_image.sizes.portrait_desc': 'Stories, Reels',
+  'social.platforms.facebook': 'Facebook',
+  'social.platforms.instagram': 'Instagram',
+  'social.platforms.linkedin': 'LinkedIn',
+  'social.platforms.tiktok': 'TikTok',
+  'common.please_enter': 'Prašome įvesti',
+  'common.failed_download': 'Nepavyko atsisiųsti',
+  'common.failed_generate': 'Nepavyko sugeneruoti',
+  'common.active': 'Aktyvus',
+  'common.inactive': 'Neaktyvus',
 };
 
 const ENGLISH: Translations = {
@@ -253,7 +286,7 @@ const ENGLISH: Translations = {
   'ai_video.title': '🎬 AI Video Generator',
   'ai_video.subtitle': 'Create Reels & TikTok videos with AI',
   'ai_video.script_label': 'Video Script',
-  'ai_video.script_placeholder': 'Enter your video script...',
+  'ai_video.script_placeholder': 'Enter your video script or description...',
   'ai_video.duration_label': 'Duration',
   'ai_video.style_label': 'Style',
   'ai_video.generate_button': 'Generate Video',
@@ -263,6 +296,21 @@ const ENGLISH: Translations = {
   'ai_video.styles.realistic': 'Realistic',
   'ai_video.styles.animated': 'Animated',
   'ai_video.styles.cinematic': 'Cinematic',
+  'ai_image.sizes.square': 'Square (1:1)',
+  'ai_image.sizes.landscape': 'Landscape (16:9)',
+  'ai_image.sizes.portrait': 'Portrait (9:16)',
+  'ai_image.sizes.square_desc': 'Instagram, Facebook',
+  'ai_image.sizes.landscape_desc': 'YouTube, LinkedIn',
+  'ai_image.sizes.portrait_desc': 'Stories, Reels',
+  'social.platforms.facebook': 'Facebook',
+  'social.platforms.instagram': 'Instagram',
+  'social.platforms.linkedin': 'LinkedIn',
+  'social.platforms.tiktok': 'TikTok',
+  'common.please_enter': 'Please enter',
+  'common.failed_download': 'Failed to download',
+  'common.failed_generate': 'Failed to generate',
+  'common.active': 'Active',
+  'common.inactive': 'Inactive',
 };
 
 // @ts-ignore - Other languages fallback to English for new features

@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function AIVideoGeneratorPage() {
+  const { t } = useLanguage();
   const params = useParams();
   const projectId = params.projectId as string;
   const [script, setScript] = useState('');
@@ -15,7 +17,7 @@ export default function AIVideoGeneratorPage() {
 
   const generateVideo = async () => {
     if (!script.trim()) {
-      alert('Please enter a script');
+      alert(`${t('common.please_enter')} ${t('ai_video.script_label').toLowerCase()}`);
       return;
     }
 
@@ -31,7 +33,7 @@ export default function AIVideoGeneratorPage() {
       setVideoUrl(response.data.url);
     } catch (error: any) {
       console.error('Failed to generate video:', error);
-      alert(error.response?.data?.message || 'Failed to generate video');
+      alert(error.response?.data?.message || t('common.failed_generate'));
     } finally {
       setGenerating(false);
     }
@@ -40,19 +42,21 @@ export default function AIVideoGeneratorPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">🎬 AI Video Generator</h1>
-        <p className="text-gray-400">Create Reels & TikTok videos with AI</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{t('ai_video.title')}</h1>
+        <p className="text-gray-400">{t('ai_video.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Form */}
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <div className="mb-6">
-            <label className="block text-white font-semibold mb-2">Video Script</label>
+            <label className="block text-white font-semibold mb-2">
+              {t('ai_video.script_label')}
+            </label>
             <textarea
               value={script}
               onChange={(e) => setScript(e.target.value)}
-              placeholder="Enter your video script or description..."
+              placeholder={t('ai_video.script_placeholder')}
               className="w-full bg-gray-900 text-white rounded-lg p-4 border border-gray-700 focus:border-purple-500 focus:outline-none min-h-[200px]"
               disabled={generating}
             />
@@ -60,7 +64,7 @@ export default function AIVideoGeneratorPage() {
 
           <div className="mb-6">
             <label className="block text-white font-semibold mb-2">
-              Duration: {duration}s
+              {t('ai_video.duration_label')}: {duration}s
             </label>
             <input
               type="range"
@@ -74,31 +78,33 @@ export default function AIVideoGeneratorPage() {
           </div>
 
           <div className="mb-6">
-            <label className="block text-white font-semibold mb-2">Style</label>
+            <label className="block text-white font-semibold mb-2">
+              {t('ai_video.style_label')}
+            </label>
             <select
               value={style}
               onChange={(e) => setStyle(e.target.value)}
               className="w-full bg-gray-900 text-white rounded-lg p-3 border border-gray-700"
               disabled={generating}
             >
-              <option value="realistic">Realistic</option>
-              <option value="animated">Animated</option>
-              <option value="cinematic">Cinematic</option>
+              <option value="realistic">{t('ai_video.styles.realistic')}</option>
+              <option value="animated">{t('ai_video.styles.animated')}</option>
+              <option value="cinematic">{t('ai_video.styles.cinematic')}</option>
             </select>
           </div>
 
           <button
             onClick={generateVideo}
             disabled={generating || !script.trim()}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-600 text-white font-semibold py-4 rounded-lg"
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-lg transition-all"
           >
-            {generating ? 'Generating...' : 'Generate Video'}
+            {generating ? t('ai_video.generating') : t('ai_video.generate_button')}
           </button>
         </div>
 
         {/* Preview */}
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <h3 className="text-white font-semibold mb-4">Preview</h3>
+          <h3 className="text-white font-semibold mb-4">{t('ai_video.preview_label')}</h3>
           {videoUrl ? (
             <video
               src={videoUrl}
@@ -107,7 +113,7 @@ export default function AIVideoGeneratorPage() {
             />
           ) : (
             <div className="aspect-[9/16] bg-gray-900 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500">Video will appear here</p>
+              <p className="text-gray-500">{t('ai_video.preview_placeholder')}</p>
             </div>
           )}
         </div>

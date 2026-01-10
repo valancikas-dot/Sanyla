@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 type SocialAccount = {
   id: string;
@@ -15,13 +16,14 @@ type SocialAccount = {
 };
 
 const PLATFORMS = [
-  { id: 'FACEBOOK', name: 'Facebook', icon: '📘', color: 'bg-blue-600' },
-  { id: 'INSTAGRAM', name: 'Instagram', icon: '📷', color: 'bg-pink-600' },
-  { id: 'LINKEDIN', name: 'LinkedIn', icon: '💼', color: 'bg-blue-700' },
-  { id: 'TIKTOK', name: 'TikTok', icon: '🎵', color: 'bg-black' },
-];
+  { id: 'FACEBOOK', name: 'social.platforms.facebook', icon: '📘', color: 'bg-blue-600' },
+  { id: 'INSTAGRAM', name: 'social.platforms.instagram', icon: '📷', color: 'bg-pink-600' },
+  { id: 'LINKEDIN', name: 'social.platforms.linkedin', icon: '💼', color: 'bg-blue-700' },
+  { id: 'TIKTOK', name: 'social.platforms.tiktok', icon: '🎵', color: 'bg-black' },
+] as const;
 
 export default function SocialAccountsPage() {
+  const { t } = useLanguage();
   const params = useParams();
   const projectId = params.projectId as string;
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
@@ -43,7 +45,6 @@ export default function SocialAccountsPage() {
   };
 
   const connectPlatform = (platform: string) => {
-    // OAuth flow URLs
     const redirectUri = `${window.location.origin}/api/auth/social/callback`;
     
     const oauthUrls: Record<string, string> = {
@@ -53,22 +54,19 @@ export default function SocialAccountsPage() {
       TIKTOK: `https://www.tiktok.com/auth/authorize?client_key=${process.env.NEXT_PUBLIC_TIKTOK_CLIENT_KEY}&redirect_uri=${redirectUri}&scope=user.info.basic,video.publish`,
     };
 
-    // Store projectId in localStorage for callback
     localStorage.setItem('connectProjectId', projectId);
-    
-    // Redirect to OAuth flow
     window.location.href = oauthUrls[platform];
   };
 
   const disconnectAccount = async (accountId: string) => {
-    if (!confirm('Are you sure you want to disconnect this account?')) return;
+    if (!confirm(t('social.disconnect_confirm'))) return;
 
     try {
       await api.delete(`/social/accounts/${accountId}`);
       setAccounts(accounts.filter((a) => a.id !== accountId));
     } catch (error) {
       console.error('Failed to disconnect account:', error);
-      alert('Failed to disconnect account');
+      alert(t('social.disconnect_failed'));
     }
   };
 
@@ -83,16 +81,16 @@ export default function SocialAccountsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Social Media Accounts</h1>
-        <p className="text-gray-400">
-          Connect your social media accounts to publish and manage content
-        </p>
+        <h1 className="text-3xl font-bold text-white mb-2">{t('social.title')}</h1>
+        <p className="text-gray-400">{t('social.subtitle')}</p>
       </div>
 
       {/* Connected Accounts */}
       {accounts.length > 0 && (
         <div className="mb-12">
-          <h2 className="text-xl font-semibold text-white mb-4">Connected Accounts</h2>
+          <h2 className="text-xl font-semibold text-white mb-4">
+            {t('social.connected_accounts')}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {accounts.map((account) => {
               const platform = PLATFORMS.find((p) => p.id === account.platform);
@@ -108,7 +106,9 @@ export default function SocialAccountsPage() {
                       </div>
                       <div>
                         <h3 className="text-white font-semibold">{account.accountName}</h3>
-                        <p className="text-sm text-gray-400">{platform?.name}</p>
+                        <p className="text-sm text-gray-400">
+                          {platform && t(platform.name as any)}
+                        </p>
                       </div>
                     </div>
                     <span
@@ -118,7 +118,7 @@ export default function SocialAccountsPage() {
                           : 'bg-red-500/20 text-red-400'
                       }`}
                     >
-                      {account.status}
+                      {account.status === 'ACTIVE' ? t('common.active') : t('common.inactive')}
                     </span>
                   </div>
 
@@ -127,7 +127,7 @@ export default function SocialAccountsPage() {
                       onClick={() => disconnectAccount(account.id)}
                       className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm"
                     >
-                      Disconnect
+                      {t('common.disconnect')}
                     </button>
                   </div>
                 </div>
@@ -139,7 +139,9 @@ export default function SocialAccountsPage() {
 
       {/* Available Platforms */}
       <div>
-        <h2 className="text-xl font-semibold text-white mb-4">Connect New Platform</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">
+          {t('social.connect_new')}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {PLATFORMS.map((platform) => {
             const isConnected = accounts.some((a) => a.platform === platform.id);
@@ -153,9 +155,9 @@ export default function SocialAccountsPage() {
                 } text-white rounded-lg p-6 transition-opacity`}
               >
                 <div className="text-4xl mb-3">{platform.icon}</div>
-                <h3 className="font-semibold mb-1">{platform.name}</h3>
+                <h3 className="font-semibold mb-1">{t(platform.name as any)}</h3>
                 <p className="text-sm opacity-90">
-                  {isConnected ? 'Connected' : 'Click to connect'}
+                  {isConnected ? t('social.connected') : t('social.click_to_connect')}
                 </p>
               </button>
             );

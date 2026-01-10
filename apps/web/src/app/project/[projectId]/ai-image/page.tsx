@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import Image from 'next/image';
 
 type GeneratedImage = {
@@ -14,6 +15,7 @@ type GeneratedImage = {
 };
 
 export default function AIImageGeneratorPage() {
+  const { t } = useLanguage();
   const params = useParams();
   const projectId = params.projectId as string;
   const [prompt, setPrompt] = useState('');
@@ -23,22 +25,22 @@ export default function AIImageGeneratorPage() {
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
 
   const styles = [
-    { id: 'photorealistic', name: 'Photorealistic', icon: '📸' },
-    { id: 'artistic', name: 'Artistic', icon: '🎨' },
-    { id: 'minimalist', name: 'Minimalist', icon: '⚪' },
-    { id: 'vibrant', name: 'Vibrant', icon: '🌈' },
-    { id: 'professional', name: 'Professional', icon: '💼' },
+    { id: 'photorealistic', name: t('ai_image.styles.photorealistic'), icon: '📸' },
+    { id: 'artistic', name: t('ai_image.styles.artistic'), icon: '🎨' },
+    { id: 'minimalist', name: t('ai_image.styles.minimalist'), icon: '⚪' },
+    { id: 'vibrant', name: t('ai_image.styles.vibrant'), icon: '🌈' },
+    { id: 'professional', name: t('ai_image.styles.professional'), icon: '💼' },
   ];
 
   const sizes = [
-    { id: '1024x1024', name: 'Square (1:1)', desc: 'Instagram, Facebook' },
-    { id: '1792x1024', name: 'Landscape (16:9)', desc: 'YouTube, LinkedIn' },
-    { id: '1024x1792', name: 'Portrait (9:16)', desc: 'Stories, Reels' },
+    { id: '1024x1024', name: t('ai_image.sizes.square'), desc: t('ai_image.sizes.square_desc') },
+    { id: '1792x1024', name: t('ai_image.sizes.landscape'), desc: t('ai_image.sizes.landscape_desc') },
+    { id: '1024x1792', name: t('ai_image.sizes.portrait'), desc: t('ai_image.sizes.portrait_desc') },
   ];
 
   const generateImage = async () => {
     if (!prompt.trim()) {
-      alert('Please enter a prompt');
+      alert(`${t('common.please_enter')} ${t('ai_image.prompt_label').toLowerCase()}`);
       return;
     }
 
@@ -52,10 +54,10 @@ export default function AIImageGeneratorPage() {
       });
 
       setGeneratedImages([response.data, ...generatedImages]);
-      setPrompt(''); // Clear prompt after generation
+      setPrompt('');
     } catch (error: any) {
       console.error('Failed to generate image:', error);
-      alert(error.response?.data?.message || 'Failed to generate image');
+      alert(error.response?.data?.message || t('common.failed_generate'));
     } finally {
       setGenerating(false);
     }
@@ -75,25 +77,27 @@ export default function AIImageGeneratorPage() {
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error('Failed to download image:', error);
-      alert('Failed to download image');
+      alert(t('common.failed_download'));
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">🎨 AI Image Generator</h1>
-        <p className="text-gray-400">Create stunning visuals for your posts with DALL-E 3</p>
+        <h1 className="text-3xl font-bold text-white mb-2">{t('ai_image.title')}</h1>
+        <p className="text-gray-400">{t('ai_image.subtitle')}</p>
       </div>
 
       {/* Generator Form */}
       <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-700">
         <div className="mb-6">
-          <label className="block text-white font-semibold mb-2">Prompt</label>
+          <label className="block text-white font-semibold mb-2">
+            {t('ai_image.prompt_label')}
+          </label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe the image you want to create... e.g., 'A modern office workspace with laptop and coffee, minimalist style, soft lighting'"
+            placeholder={t('ai_image.prompt_placeholder')}
             className="w-full bg-gray-900 text-white rounded-lg p-4 border border-gray-700 focus:border-purple-500 focus:outline-none min-h-[120px]"
             disabled={generating}
           />
@@ -101,7 +105,9 @@ export default function AIImageGeneratorPage() {
 
         {/* Style Selection */}
         <div className="mb-6">
-          <label className="block text-white font-semibold mb-3">Style</label>
+          <label className="block text-white font-semibold mb-3">
+            {t('ai_image.style_label')}
+          </label>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {styles.map((s) => (
               <button
@@ -123,7 +129,9 @@ export default function AIImageGeneratorPage() {
 
         {/* Size Selection */}
         <div className="mb-6">
-          <label className="block text-white font-semibold mb-3">Size</label>
+          <label className="block text-white font-semibold mb-3">
+            {t('ai_image.size_label')}
+          </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {sizes.map((s) => (
               <button
@@ -152,10 +160,10 @@ export default function AIImageGeneratorPage() {
           {generating ? (
             <span className="flex items-center justify-center gap-2">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              Generating...
+              {t('ai_image.generating')}
             </span>
           ) : (
-            'Generate Image'
+            t('ai_image.generate_button')
           )}
         </button>
       </div>
@@ -163,7 +171,9 @@ export default function AIImageGeneratorPage() {
       {/* Generated Images Grid */}
       {generatedImages.length > 0 && (
         <div>
-          <h2 className="text-2xl font-bold text-white mb-4">Generated Images</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">
+            {t('ai_image.generated_images')}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {generatedImages.map((image) => (
               <div
@@ -181,15 +191,10 @@ export default function AIImageGeneratorPage() {
                 <div className="p-4">
                   <p className="text-gray-300 text-sm mb-3 line-clamp-2">{image.prompt}</p>
                   <button
-                    onClick={() =>
-                      downloadImage(
-                        image.url,
-                        `sanyla-${image.id}.png`
-                      )
-                    }
+                    onClick={() => downloadImage(image.url, `sanyla-${image.id}.png`)}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg transition-colors text-sm font-medium"
                   >
-                    Download
+                    {t('common.download')}
                   </button>
                 </div>
               </div>
@@ -199,10 +204,12 @@ export default function AIImageGeneratorPage() {
       )}
 
       {generatedImages.length === 0 && !generating && (
-        <div className="text-center py-12">
+        <div className="text-center py-16">
           <div className="text-6xl mb-4">🎨</div>
-          <p className="text-gray-400 text-lg">No images generated yet</p>
-          <p className="text-gray-500 text-sm">Enter a prompt above to get started</p>
+          <h3 className="text-xl font-semibold text-white mb-2">
+            {t('ai_image.no_images')}
+          </h3>
+          <p className="text-gray-400">{t('ai_image.no_images_desc')}</p>
         </div>
       )}
     </div>
