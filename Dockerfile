@@ -19,9 +19,6 @@ RUN pnpm install --no-frozen-lockfile
 # Copy source code
 COPY . .
 
-# Generate Prisma Client
-RUN cd prisma && pnpm prisma generate
-
 # Build web app
 RUN pnpm --filter @marketing-autopilot/web build
 
