@@ -213,12 +213,12 @@ export default function AuthPage() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10" />
               </div>
-              <div className="relative flex justify-center text-sm">
+              {/* Google Sign In - temporarily disabled */}
+              {/* <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-card text-muted-foreground">{t('auth.or')}</span>
               </div>
             </div>
 
-            {/* Google Sign In */}
             <button
               onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
               disabled={loading}
@@ -243,7 +243,8 @@ export default function AuthPage() {
                 />
               </svg>
               {t('auth.google_signin')}
-            </button>
+            </button> */}
+            </div>
 
             {/* Demo Login */}
             <button
