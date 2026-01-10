@@ -1,12 +1,10 @@
 import NextAuth, { AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 const authOptions: AuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -58,17 +56,54 @@ const authOptions: AuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
+        (session.user as any).email = token.email;
+        (session.user as any).name = token.name;
       }
       return session;
     },
     async signIn({ user, account, profile }) {
-      // Allow all sign-ins
+      if (account?.provider === 'google') {
+        // Check if user exists, create if not
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
+
+        if (!existingUser) {
+          // Create user from Google OAuth
+          const newUser = await prisma.user.create({
+            data: {
+              email: user.email!,
+              name: user.name || user.email!.split('@')[0],
+              image: user.image,
+            },
+          });
+
+          // Create default organization
+          const org = await prisma.organization.create({
+            data: {
+              name: `${newUser.name}'s Organization`,
+              slug: `${newUser.id}-org`,
+            },
+          });
+
+          // Create membership
+          await prisma.membership.create({
+            data: {
+              userId: newUser.id,
+              organizationId: org.id,
+              role: 'owner',
+            },
+          });
+        }
+      }
       return true;
     },
   },
