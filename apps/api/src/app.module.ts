@@ -8,6 +8,8 @@ import { AiModule } from './ai/ai.module';
 import { ContentModule } from './content/content.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { SocialModule } from './social/social.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { AnalyticsModule } from './analytics/analytics.module';
     ContentModule,
     SchedulerModule,
     AnalyticsModule,
+    SocialModule,
+    MediaModule,
   ],
 })
 export class AppModule {}

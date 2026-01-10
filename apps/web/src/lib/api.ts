@@ -67,4 +67,11 @@ export const api = {
   // Analytics
   getAnalyticsSummary: (projectId: string) =>
     apiClient.get(`/projects/${projectId}/analytics/summary`),
+
+  // Social Media
+  get: (url: string) => apiClient.get(url),
+  post: (url: string, data?: any) => apiClient.post(url, data),
+  patch: (url: string, data?: any) => apiClient.patch(url, data),
+  put: (url: string, data?: any) => apiClient.put(url, data),
+  delete: (url: string) => apiClient.delete(url),
 };
