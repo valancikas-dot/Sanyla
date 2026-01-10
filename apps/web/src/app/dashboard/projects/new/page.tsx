@@ -6,12 +6,12 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, FolderPlus } from 'lucide-react';
+import { ArrowLeft, FolderPlus, Loader2 } from 'lucide-react';
 
 export default function NewProjectPage() {
   const router = useRouter();
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [industry, setIndustry] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,17 +21,21 @@ export default function NewProjectPage() {
     setError('');
 
     try {
-      // TODO: Implement project creation API
-      // const res = await fetch('/api/projects', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ name, description }),
-      // });
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, industry }),
+      });
 
-      // For now, just redirect back
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Klaida kuriant projektą');
+      }
+
       router.push('/dashboard/projects');
-    } catch {
-      setError('Klaida kuriant projektą');
+    } catch (err: any) {
+      setError(err.message || 'Klaida kuriant projektą');
     } finally {
       setIsLoading(false);
     }
@@ -72,12 +76,12 @@ export default function NewProjectPage() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="description" className="text-sm font-medium">Aprašymas (neprivaloma)</label>
+                <label htmlFor="industry" className="text-sm font-medium">Industrija (neprivaloma)</label>
                 <Input
-                  id="description"
-                  placeholder="Trumpai aprašykite projekto tikslus..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  id="industry"
+                  placeholder="Pvz.: E-komercija, Finansai, Sveikata..."
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
                 />
               </div>
 
@@ -86,8 +90,15 @@ export default function NewProjectPage() {
               )}
 
               <div className="flex gap-3 pt-4">
-                <Button type="submit" disabled={isLoading} className="flex-1">
-                  {isLoading ? 'Kuriama...' : 'Sukurti projektą'}
+                <Button type="submit" disabled={isLoading} className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Kuriama...
+                    </>
+                  ) : (
+                    'Sukurti projektą'
+                  )}
                 </Button>
                 <Button 
                   type="button" 

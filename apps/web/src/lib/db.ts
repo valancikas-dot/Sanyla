@@ -67,6 +67,25 @@ export interface TeamInvitation {
   organization?: Organization;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  industry: string | null;
+  country: string | null;
+  city: string | null;
+  website: string | null;
+  offer: string | null;
+  prices: string | null;
+  targetAudience: string | null;
+  language: string;
+  tone: string;
+  brandColors: string[];
+  competitors: string | null;
+  organizationId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Generate CUID-like ID
 function generateId(): string {
   return 'c' + Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
@@ -283,6 +302,93 @@ export const db = {
         const result = await client.query(
           `UPDATE "team_invitations" SET status = $1, "updatedAt" = $2 WHERE id = $3 RETURNING *`,
           [data.status, new Date(), where.id]
+        );
+        return result.rows[0];
+      } finally {
+        client.release();
+      }
+    },
+  },
+
+  // Project operations
+  project: {
+    async findMany(where: { organizationId: string }): Promise<Project[]> {
+      const client = await getPool().connect();
+      try {
+        const result = await client.query(
+          'SELECT * FROM "projects" WHERE "organizationId" = $1 ORDER BY "createdAt" DESC',
+          [where.organizationId]
+        );
+        return result.rows;
+      } finally {
+        client.release();
+      }
+    },
+
+    async findUnique(where: { id: string }): Promise<Project | null> {
+      const client = await getPool().connect();
+      try {
+        const result = await client.query(
+          'SELECT * FROM "projects" WHERE id = $1',
+          [where.id]
+        );
+        return result.rows[0] || null;
+      } finally {
+        client.release();
+      }
+    },
+
+    async create(data: { name: string; industry?: string; organizationId: string }): Promise<Project> {
+      const client = await getPool().connect();
+      try {
+        const id = generateId();
+        const now = new Date();
+        const result = await client.query(
+          `INSERT INTO "projects" (id, name, industry, language, tone, "brandColors", "organizationId", "createdAt", "updatedAt") 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+           RETURNING *`,
+          [id, data.name, data.industry || null, 'lt', 'professional', '{}', data.organizationId, now, now]
+        );
+        return result.rows[0];
+      } finally {
+        client.release();
+      }
+    },
+
+    async delete(where: { id: string }): Promise<void> {
+      const client = await getPool().connect();
+      try {
+        await client.query('DELETE FROM "projects" WHERE id = $1', [where.id]);
+      } finally {
+        client.release();
+      }
+    },
+  },
+
+  // User update
+  userUpdate: {
+    async update(where: { id: string }, data: { name?: string; image?: string }): Promise<User> {
+      const client = await getPool().connect();
+      try {
+        const updates: string[] = [];
+        const values: any[] = [];
+        let paramIndex = 1;
+
+        if (data.name !== undefined) {
+          updates.push(`name = $${paramIndex++}`);
+          values.push(data.name);
+        }
+        if (data.image !== undefined) {
+          updates.push(`image = $${paramIndex++}`);
+          values.push(data.image);
+        }
+        updates.push(`"updatedAt" = $${paramIndex++}`);
+        values.push(new Date());
+        values.push(where.id);
+
+        const result = await client.query(
+          `UPDATE "users" SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+          values
         );
         return result.rows[0];
       } finally {
