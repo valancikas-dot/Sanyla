@@ -1,4 +1,4 @@
-# Use Node.js 20 Alpine
+# Use Node.js 20 Alpine - No Prisma, using pg directly
 FROM node:20-alpine AS base
 
 # Install pnpm
