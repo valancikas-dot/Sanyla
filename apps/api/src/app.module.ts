@@ -10,6 +10,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SocialModule } from './social/social.module';
 import { MediaModule } from './media/media.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
   imports: [
@@ -28,6 +29,10 @@ import { MediaModule } from './media/media.module';
     AiModule,
     ContentModule,
     SchedulerModule,
+    AnalyticsModule,
+    SocialModule,
+    MediaModule,
+    SubscriptionModule,
     AnalyticsModule,
     SocialModule,
     MediaModule,
