@@ -1,0 +1,565 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  name      String?
+  image     String?
+  role      String   @default("user") // user, admin, super_admin
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  auditLogs   AuditLog[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships     Membership[]
+  teamInvitations TeamInvitation[]
+  projects        Project[]
+  subscription    Subscription?
+
+  @@map("organizations")
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  role           String   @default("owner") // owner, member
+  userId         String
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("memberships")
+}
+
+model TeamInvitation {
+  id             String   @id @default(cuid())
+  email          String
+  role           String   @default("member") // owner, member
+  token          String   @unique
+  status         String   @default("pending") // pending, accepted, expired
+  organizationId String
+  invitedBy      String? // User ID who sent invitation
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([email, organizationId])
+  @@map("team_invitations")
+}
+
+model Project {
+  id             String   @id @default(cuid())
+  name           String
+  industry       String?
+  country        String?
+  city           String?
+  website        String?
+  offer          String?
+  prices         String?
+  targetAudience String?
+  language       String   @default("en")
+  tone           String   @default("professional")
+  brandColors    String[] // array of hex colors
+  competitors    String?
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assets          Asset[]
+  contentItems    ContentItem[]
+  contentBatches  ContentBatch[]
+  scheduleJobs    ScheduleJob[]
+  integrations    Integration[]
+  socialAccounts  SocialAccount[]
+
+  @@map("projects")
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  type      String // logo, image, video
+  filename  String
+  path      String
+  mimeType  String?
+  size      Int?
+  projectId String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("assets")
+}
+
+model ContentItem {
+  id        String   @id @default(cuid())
+  type      String // STRATEGY, CALENDAR, POST, REEL_SCRIPT, INSIGHT, VIDEO, IMAGE
+  title     String?
+  content   Json // flexible JSON content
+  metadata  Json? // additional metadata
+  projectId String
+  batchId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  batch         ContentBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  scheduleJobs  ScheduleJob[]
+  publications  Publication[]
+
+  @@map("content_items")
+}
+
+model ContentBatch {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  projectId   String
+  createdAt   DateTime @default(now())
+
+  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  items   ContentItem[]
+
+  @@map("content_batches")
+}
+
+model ScheduleJob {
+  id             String   @id @default(cuid())
+  scheduledFor   DateTime
+  platform       String // GENERIC, META, TIKTOK, LINKEDIN, YOUTUBE
+  status         String   @default("DRAFT") // DRAFT, SCHEDULED, POSTED, FAILED
+  payload        Json? // exported payload for autopost
+  error          String?
+  contentItemId  String
+  projectId      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  contentItem ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("schedule_jobs")
+}
+
+model Integration {
+  id               String   @id @default(cuid())
+  type             String // GA4, META, TIKTOK, LINKEDIN, YOUTUBE
+  credentials      String? // encrypted JSON
+  config           Json? // additional config
+  status           String   @default("ACTIVE") // ACTIVE, INACTIVE, ERROR
+  lastSyncAt       DateTime?
+  projectId        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("integrations")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  metadata  Json?
+  userId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
+
+// ============================================
+// NEW FEATURES MODELS
+// ============================================
+
+// Social Media Accounts for Multi-Channel Publishing
+model SocialAccount {
+  id            String   @id @default(cuid())
+  platform      String // FACEBOOK, INSTAGRAM, LINKEDIN, TIKTOK, TWITTER, YOUTUBE
+  accountId     String // platform's account ID
+  accountName   String
+  accessToken   String // encrypted
+  refreshToken  String? // encrypted
+  tokenExpiry   DateTime?
+  status        String   @default("ACTIVE") // ACTIVE, EXPIRED, ERROR
+  metadata      Json? // profile pic, followers count, etc.
+  projectId     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  publications  Publication[]
+  analytics     SocialAnalytics[]
+
+  @@unique([platform, accountId, projectId])
+  @@map("social_accounts")
+}
+
+// Published Posts (Multi-Channel)
+model Publication {
+  id              String   @id @default(cuid())
+  contentItemId   String
+  socialAccountId String
+  platform        String // FACEBOOK, INSTAGRAM, etc.
+  platformPostId  String? // ID on the platform
+  status          String   @default("SCHEDULED") // SCHEDULED, PUBLISHED, FAILED, DELETED
+  publishedAt     DateTime?
+  scheduledFor    DateTime
+  error           String?
+  metadata        Json? // permalink, insights, etc.
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  contentItem   ContentItem   @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  abTests       ABTest[]
+
+  @@map("publications")
+}
+
+// Analytics Data from Social Platforms
+model SocialAnalytics {
+  id              String   @id @default(cuid())
+  socialAccountId String
+  publicationId   String?
+  date            DateTime
+  metric          String // IMPRESSIONS, REACH, ENGAGEMENT, CLICKS, SHARES, SAVES
+  value           Int
+  metadata        Json? // demographics, etc.
+  createdAt       DateTime @default(now())
+
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  @@index([socialAccountId, date])
+  @@map("social_analytics")
+}
+
+// A/B Testing
+model ABTest {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  status        String   @default("RUNNING") // RUNNING, COMPLETED, CANCELLED
+  winnerVariant String? // A, B, C
+  projectId     String
+  startDate     DateTime
+  endDate       DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  variants      ABVariant[]
+  publications  Publication[]
+
+  @@map("ab_tests")
+}
+
+model ABVariant {
+  id          String   @id @default(cuid())
+  testId      String
+  variant     String // A, B, C
+  contentItemId String
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  engagement  Int      @default(0)
+  conversions Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  test        ABTest      @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@map("ab_variants")
+}
+
+// AI Generated Media
+model GeneratedMedia {
+  id          String   @id @default(cuid())
+  type        String // IMAGE, VIDEO, AUDIO
+  provider    String // DALLE, STABLE_DIFFUSION, RUNWAY, SYNTHESIA
+  prompt      String
+  url         String
+  metadata    Json? // size, duration, style, etc.
+  projectId   String
+  createdAt   DateTime @default(now())
+
+  @@map("generated_media")
+}
+
+// Competitor Tracking
+model Competitor {
+  id          String   @id @default(cuid())
+  name        String
+  website     String?
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  socialProfiles CompetitorSocialProfile[]
+  posts          CompetitorPost[]
+
+  @@map("competitors")
+}
+
+model CompetitorSocialProfile {
+  id            String   @id @default(cuid())
+  competitorId  String
+  platform      String // FACEBOOK, INSTAGRAM, etc.
+  profileUrl    String
+  profileHandle String?
+  lastScrapedAt DateTime?
+  metadata      Json? // followers, bio, etc.
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  competitor    Competitor       @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@map("competitor_social_profiles")
+}
+
+model CompetitorPost {
+  id            String   @id @default(cuid())
+  competitorId  String
+  platform      String
+  postUrl       String
+  content       String?
+  publishedAt   DateTime?
+  engagement    Int? // likes + comments + shares
+  metadata      Json? // full post data
+  createdAt     DateTime @default(now())
+
+  competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@map("competitor_posts")
+}
+
+// Email Marketing
+model EmailCampaign {
+  id          String   @id @default(cuid())
+  name        String
+  subject     String
+  content     String // HTML
+  status      String   @default("DRAFT") // DRAFT, SCHEDULED, SENT
+  scheduledFor DateTime?
+  sentAt      DateTime?
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stats       EmailCampaignStats?
+  subscribers EmailSubscriber[]
+
+  @@map("email_campaigns")
+}
+
+model EmailCampaignStats {
+  id          String   @id @default(cuid())
+  campaignId  String   @unique
+  sent        Int      @default(0)
+  delivered   Int      @default(0)
+  opened      Int      @default(0)
+  clicked     Int      @default(0)
+  bounced     Int      @default(0)
+  unsubscribed Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  campaign    EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("email_campaign_stats")
+}
+
+model EmailSubscriber {
+  id          String   @id @default(cuid())
+  email       String
+  name        String?
+  status      String   @default("ACTIVE") // ACTIVE, UNSUBSCRIBED, BOUNCED
+  tags        String[] // segmentation
+  metadata    Json?
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  campaigns   EmailCampaign[]
+
+  @@unique([email, projectId])
+  @@map("email_subscribers")
+}
+
+// Lead Generation
+model Lead {
+  id          String   @id @default(cuid())
+  email       String
+  name        String?
+  phone       String?
+  company     String?
+  source      String? // landing_page_id, form_id
+  status      String   @default("NEW") // NEW, CONTACTED, CONVERTED, LOST
+  metadata    Json? // custom fields
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("leads")
+}
+
+// Hashtag Tracking
+model Hashtag {
+  id          String   @id @default(cuid())
+  tag         String
+  platform    String // INSTAGRAM, TIKTOK, TWITTER
+  popularity  Int? // estimated reach
+  trending    Boolean  @default(false)
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  performance HashtagPerformance[]
+
+  @@unique([tag, platform, projectId])
+  @@map("hashtags")
+}
+
+model HashtagPerformance {
+  id          String   @id @default(cuid())
+  hashtagId   String
+  postId      String? // contentItemId
+  impressions Int      @default(0)
+  engagement  Int      @default(0)
+  date        DateTime
+  createdAt   DateTime @default(now())
+
+  hashtag     Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@map("hashtag_performance")
+}
+
+// AI Chat History
+model ChatMessage {
+  id          String   @id @default(cuid())
+  role        String // USER, ASSISTANT, SYSTEM
+  content     String
+  metadata    Json? // commands, actions performed
+  projectId   String
+  userId      String
+  createdAt   DateTime @default(now())
+
+  @@map("chat_messages")
+}
+
+// Subscription Plans
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  PAUSED
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  organizationId String             @unique
+  plan           SubscriptionPlan   @default(FREE)
+  status         SubscriptionStatus @default(ACTIVE)
+  
+  // Limits
+  maxProjects        Int     @default(1)
+  maxAIImages        Int     @default(5)
+  maxAIVideos        Int     @default(0)
+  maxSocialAccounts  Int     @default(1)
+  maxTeamMembers     Int     @default(1)
+  
+  // Usage tracking
+  usedAIImages       Int     @default(0)
+  usedAIVideos       Int     @default(0)
+  
+  // Billing
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean  @default(false)
+  
+  // Stripe integration
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  stripePriceId          String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payments     Payment[]
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  amount         Int // in cents (e.g., 2900 for €29.00)
+  currency       String   @default("EUR")
+  status         String // succeeded, pending, failed
+  
+  // Stripe
+  stripePaymentIntentId String?
+  stripeInvoiceId       String?
+  
+  // Metadata
+  plan           SubscriptionPlan
+  billingPeriod  String // monthly, yearly
+  
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// Usage tracking for limits
+model UsageLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  resourceType   String // AI_IMAGE, AI_VIDEO, PROJECT, SOCIAL_ACCOUNT
+  action         String // CREATE, DELETE
+  quantity       Int      @default(1)
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, resourceType])
+  @@map("usage_logs")
+}
