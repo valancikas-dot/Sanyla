@@ -233,8 +233,10 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            <div className="text-sm text-gray-400">
-              © 2026 Sanyla. AI Marketing Autopilot.
+            <div className="flex flex-col md:flex-row items-center gap-2 text-sm text-gray-400">
+              <span>© 2026 Sanyla. AI Marketing Autopilot.</span>
+              <span className="hidden md:inline">•</span>
+              <span className="text-cyan-400 font-medium">by Vilca</span>
             </div>
           </div>
         </div>

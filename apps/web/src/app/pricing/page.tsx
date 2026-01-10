@@ -295,6 +295,17 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 py-8 px-6">
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-2 text-sm text-gray-400">
+            <span>© 2026 Sanyla. AI Marketing Autopilot.</span>
+            <span className="hidden md:inline">•</span>
+            <span className="text-cyan-400 font-medium">by Vilca</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
