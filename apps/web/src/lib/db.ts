@@ -6,9 +6,16 @@ let pool: Pool | null = null;
 function getPool(): Pool {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
+    
+    // Debug log
+    console.log('DATABASE_URL exists:', !!connectionString);
+    console.log('DATABASE_URL starts with:', connectionString?.substring(0, 30) + '...');
+    
     if (!connectionString) {
+      console.error('DATABASE_URL is not set! Available env vars:', Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('POSTGRES')));
       throw new Error('DATABASE_URL environment variable is not set');
     }
+    
     pool = new Pool({
       connectionString,
       ssl: { rejectUnauthorized: false },
