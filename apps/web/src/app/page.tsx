@@ -19,6 +19,7 @@ const homeTranslations: Record<Language, {
   noCredit: string;
   gpt4: string;
   languages17: string;
+  pricing: string;
 }> = {
   LITHUANIAN: {
     badge: 'AI Marketingo Autopilotas',
@@ -31,6 +32,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Jokių kreditinių kortelių',
     gpt4: 'GPT-4 Turbo AI',
     languages17: '17 kalbų palaikymas',
+    pricing: 'Kainoraštis',
   },
   ENGLISH: {
     badge: 'AI Marketing Autopilot',
@@ -43,6 +45,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'No credit card required',
     gpt4: 'GPT-4 Turbo AI',
     languages17: '17 languages support',
+    pricing: 'Pricing',
   },
   RUSSIAN: {
     badge: 'AI Маркетинг Автопилот',
@@ -55,6 +58,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Кредитная карта не требуется',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Поддержка 17 языков',
+    pricing: 'Цены',
   },
   POLISH: {
     badge: 'AI Marketing Autopilot',
@@ -67,6 +71,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Nie wymaga karty kredytowej',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Obsługa 17 języków',
+    pricing: 'Cennik',
   },
   GERMAN: {
     badge: 'AI Marketing Autopilot',
@@ -79,6 +84,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Keine Kreditkarte erforderlich',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Unterstützung für 17 Sprachen',
+    pricing: 'Preise',
   },
   FRENCH: {
     badge: 'AI Marketing Autopilot',
@@ -91,6 +97,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Aucune carte de crédit requise',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Support de 17 langues',
+    pricing: 'Tarifs',
   },
   SPANISH: {
     badge: 'AI Marketing Autopilot',
@@ -103,6 +110,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'No se requiere tarjeta de crédito',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Soporte para 17 idiomas',
+    pricing: 'Precios',
   },
   // Other languages use English as fallback
   LATVIAN: {
@@ -116,6 +124,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Nav nepieciešama kredītkarte',
     gpt4: 'GPT-4 Turbo AI',
     languages17: '17 valodu atbalsts',
+    pricing: 'Cenas',
   },
   ESTONIAN: {
     badge: 'AI Marketing Autopilot',
@@ -128,6 +137,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'No credit card required',
     gpt4: 'GPT-4 Turbo AI',
     languages17: '17 languages support',
+    pricing: 'Pricing',
   },
   ITALIAN: {
     badge: 'AI Marketing Autopilot',
@@ -140,6 +150,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Nessuna carta di credito richiesta',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Supporto per 17 lingue',
+    pricing: 'Prezzi',
   },
   PORTUGUESE: {
     badge: 'AI Marketing Autopilot',
@@ -152,6 +163,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Não é necessário cartão de crédito',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Suporte para 17 idiomas',
+    pricing: 'Preços',
   },
   DUTCH: {
     badge: 'AI Marketing Autopilot',
@@ -164,6 +176,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Geen creditcard vereist',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Ondersteuning voor 17 talen',
+    pricing: 'Prijzen',
   },
   SWEDISH: {
     badge: 'AI Marketing Autopilot',
@@ -176,6 +189,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Inget kreditkort krävs',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Stöd för 17 språk',
+    pricing: 'Priser',
   },
   NORWEGIAN: {
     badge: 'AI Marketing Autopilot',
@@ -188,6 +202,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Ingen kredittkort nødvendig',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Støtte for 17 språk',
+    pricing: 'Priser',
   },
   DANISH: {
     badge: 'AI Marketing Autopilot',
@@ -200,6 +215,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Intet kreditkort påkrævet',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Support til 17 sprog',
+    pricing: 'Priser',
   },
   FINNISH: {
     badge: 'AI Marketing Autopilot',
@@ -212,6 +228,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Luottokorttia ei tarvita',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Tuki 17 kielelle',
+    pricing: 'Hinnat',
   },
   CZECH: {
     badge: 'AI Marketing Autopilot',
@@ -224,6 +241,7 @@ const homeTranslations: Record<Language, {
     noCredit: 'Není vyžadována kreditní karta',
     gpt4: 'GPT-4 Turbo AI',
     languages17: 'Podpora 17 jazyků',
+    pricing: 'Ceny',
   },
 };
 
@@ -252,7 +270,7 @@ export default function HomePage() {
             <div className="flex items-center gap-4">
               <LanguageSelector />
               <Link href="/pricing" className="px-6 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-semibold">
-                Pricing
+                {trans.pricing}
               </Link>
               <Link href="/auth" className="px-6 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-semibold">
                 {t('auth.login_button')}

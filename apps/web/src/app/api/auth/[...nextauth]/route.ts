@@ -55,7 +55,7 @@ const authOptions: AuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
       }
@@ -66,6 +66,10 @@ const authOptions: AuthOptions = {
         (session.user as any).id = token.id;
       }
       return session;
+    },
+    async signIn({ user, account, profile }) {
+      // Allow all sign-ins
+      return true;
     },
   },
 };
