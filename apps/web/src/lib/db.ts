@@ -1,10 +1,21 @@
 import { Pool } from 'pg';
 
-// Create a connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
+// Lazy pool initialization
+let pool: Pool | null = null;
+
+function getPool(): Pool {
+  if (!pool) {
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+    pool = new Pool({
+      connectionString,
+      ssl: { rejectUnauthorized: false },
+    });
+  }
+  return pool;
+}
 
 // User type
 export interface User {
@@ -58,7 +69,7 @@ export const db = {
   // User operations
   user: {
     async findUnique(where: { email?: string; id?: string }): Promise<User | null> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         let result;
         if (where.email) {
@@ -79,7 +90,7 @@ export const db = {
     },
 
     async create(data: { email: string; password?: string; name?: string; image?: string }): Promise<User> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         const id = generateId();
         const now = new Date();
@@ -99,7 +110,7 @@ export const db = {
   // Organization operations
   organization: {
     async findUnique(where: { id: string }): Promise<Organization | null> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         const result = await client.query(
           'SELECT * FROM "Organization" WHERE id = $1',
@@ -112,7 +123,7 @@ export const db = {
     },
 
     async create(data: { name: string; slug: string }): Promise<Organization> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         const id = generateId();
         const now = new Date();
@@ -132,7 +143,7 @@ export const db = {
   // Membership operations
   membership: {
     async findFirst(where: { organizationId: string; userEmail?: string; role?: string }): Promise<Membership | null> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         let query = `
           SELECT m.* FROM "Membership" m
@@ -159,7 +170,7 @@ export const db = {
     },
 
     async create(data: { userId: string; organizationId: string; role: string }): Promise<Membership> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         const id = generateId();
         const now = new Date();
@@ -179,7 +190,7 @@ export const db = {
   // Team Invitation operations
   teamInvitation: {
     async findFirst(where: { email?: string; organizationId?: string; status?: string }): Promise<TeamInvitation | null> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         let query = 'SELECT * FROM "TeamInvitation" WHERE 1=1';
         const params: any[] = [];
@@ -206,7 +217,7 @@ export const db = {
     },
 
     async findUnique(where: { token: string }): Promise<TeamInvitation | null> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         const result = await client.query(
           `SELECT ti.*, row_to_json(o.*) as organization 
@@ -237,7 +248,7 @@ export const db = {
       expiresAt: Date;
       status: string;
     }): Promise<TeamInvitation> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         const id = generateId();
         const now = new Date();
@@ -260,7 +271,7 @@ export const db = {
     },
 
     async update(where: { id: string }, data: { status: string }): Promise<TeamInvitation> {
-      const client = await pool.connect();
+      const client = await getPool().connect();
       try {
         const result = await client.query(
           `UPDATE "TeamInvitation" SET status = $1, "updatedAt" = $2 WHERE id = $3 RETURNING *`,
