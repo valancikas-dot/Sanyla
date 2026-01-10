@@ -7,7 +7,7 @@ import { LanguageSelector } from '@/lib/i18n/LanguageSelector';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function HomePage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Navigation */}
@@ -48,27 +48,39 @@ export default function HomePage() {
           <div className="text-center space-y-8 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">AI Marketingo Autopilotas</span>
+              <span className="text-sm font-medium text-primary">
+                {language === 'ENGLISH' ? 'AI Marketing Autopilot' : 'AI Marketingo Autopilotas'}
+              </span>
             </div>
             
             <h1 className="text-5xl md:text-7xl font-black leading-tight text-white">
-              Generuok <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 dienų</span><br />
-              marketingo planą per <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 sekundžių</span>
+              {language === 'ENGLISH' ? (
+                <>
+                  Generate a <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30-day</span><br />
+                  marketing plan in <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 seconds</span>
+                </>
+              ) : (
+                <>
+                  Generuok <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 dienų</span><br />
+                  marketingo planą per <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 sekundžių</span>
+                </>
+              )}
             </h1>
             
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              AI pagalba sukurk strategijas, kalendorius, postus ir Reels scenarijus. 
-              Palaikome <span className="text-cyan-400 font-semibold">17 kalbų</span> — 
-              nuo lietuvių iki ispanų.
+              {language === 'ENGLISH' 
+                ? `AI creates strategies, calendars, posts, and Reels scripts. Supporting 17 languages — from Lithuanian to Spanish.`
+                : `AI pagalba sukurk strategijas, kalendorius, postus ir Reels scenarijus. Palaikome 17 kalbų — nuo lietuvių iki ispanų.`
+              }
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Link href="/auth" className="btn-primary text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 rounded-xl shadow-lg">
                 <Zap className="w-5 h-5 mr-2" />
-                Pradėti Nemokamai
+                {language === 'ENGLISH' ? 'Start Free' : 'Pradėti Nemokamai'}
               </Link>
               <button className="text-lg px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-sm border border-white/20">
-                Žiūrėti Demo
+                {language === 'ENGLISH' ? 'Watch Demo' : 'Žiūrėti Demo'}
               </button>
             </div>
 
