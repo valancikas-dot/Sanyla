@@ -19,7 +19,9 @@ import {
   Globe,
   Target,
   Palette,
-  Save
+  Save,
+  MessageCircle,
+  Bot
 } from 'lucide-react';
 
 interface Project {
@@ -135,6 +137,13 @@ export default function ProjectPage() {
               )}
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => router.push(`/dashboard/projects/${projectId}/chat`)}
+              >
+                <Bot className="w-4 h-4 mr-2" />
+                AI Asistentas
+              </Button>
               <Button 
                 variant="outline"
                 onClick={() => setActiveTab('settings')}
