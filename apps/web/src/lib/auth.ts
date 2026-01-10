@@ -78,7 +78,7 @@ export const authOptions: AuthOptions = {
       if (account?.provider === 'google') {
         try {
           // Check if user exists
-          const existingUser = await db.user.findUnique({
+          let existingUser = await db.user.findUnique({
             email: user.email!,
           });
           
@@ -86,30 +86,54 @@ export const authOptions: AuthOptions = {
 
           if (!existingUser) {
             // Create user from Google OAuth
-            const newUser = await db.user.create({
+            existingUser = await db.user.create({
               email: user.email!,
               name: user.name || user.email!.split('@')[0],
               image: user.image || undefined,
             });
             
-            console.log('New user created:', newUser.id);
+            console.log('New user created:', existingUser.id);
+          }
 
-            // Create default organization
-            const org = await db.organization.create({
-              name: `${newUser.name}'s Organization`,
-              slug: `${newUser.id}-org`,
-            });
+          // Check if user has organization membership
+          const { Pool } = await import('pg');
+          const pool = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: { rejectUnauthorized: false }
+          });
+          const conn = await pool.connect();
+          
+          try {
+            const membershipResult = await conn.query(
+              'SELECT "organizationId" FROM "memberships" WHERE "userId" = $1 LIMIT 1',
+              [existingUser.id]
+            );
             
-            console.log('Organization created:', org.id);
+            if (!membershipResult.rows[0]) {
+              console.log('No membership found, creating organization...');
+              
+              // Create default organization
+              const org = await db.organization.create({
+                name: `${existingUser.name}'s Organization`,
+                slug: `${existingUser.id}-org`,
+              });
+              
+              console.log('Organization created:', org.id);
 
-            // Create membership
-            await db.membership.create({
-              userId: newUser.id,
-              organizationId: org.id,
-              role: 'owner',
-            });
-            
-            console.log('Membership created');
+              // Create membership
+              await db.membership.create({
+                userId: existingUser.id,
+                organizationId: org.id,
+                role: 'owner',
+              });
+              
+              console.log('Membership created');
+            } else {
+              console.log('User already has organization');
+            }
+          } finally {
+            conn.release();
+            await pool.end();
           }
           
           console.log('Google sign in SUCCESS');
