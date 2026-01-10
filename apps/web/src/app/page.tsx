@@ -28,6 +28,9 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-4">
               <LanguageSelector />
+              <Link href="/pricing" className="px-6 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-semibold">
+                Pricing
+              </Link>
               <Link href="/auth" className="px-6 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-semibold">
                 {t('auth.login_button')}
               </Link>
