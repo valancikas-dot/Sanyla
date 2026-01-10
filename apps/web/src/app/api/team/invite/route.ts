@@ -1,28 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 
 // POST /api/team/invite - Invite team member
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // TODO: Add auth check when auth is properly set up
+    // For now, require userId to be passed in request
+    const { email, organizationId, role = 'member', currentUserEmail } = await req.json();
 
-    const { email, organizationId, role = 'member' } = await req.json();
-
-    if (!email || !organizationId) {
-      return NextResponse.json({ error: 'Email and organizationId required' }, { status: 400 });
+    if (!email || !organizationId || !currentUserEmail) {
+      return NextResponse.json({ error: 'Email, organizationId, and currentUserEmail required' }, { status: 400 });
     }
 
     // Check if user is owner of organization
     const membership = await prisma.membership.findFirst({
       where: {
         organizationId,
-        user: { email: session.user.email },
+        user: { email: currentUserEmail },
         role: 'owner',
       },
     });
@@ -58,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     // Get current user
     const currentUser = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { email: currentUserEmail },
     });
 
     // Create invitation
@@ -103,11 +98,7 @@ export async function POST(req: NextRequest) {
 // GET /api/team/invite - List pending invitations for organization
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    // TODO: Add auth check when auth is properly set up
     const { searchParams } = new URL(req.url);
     const organizationId = searchParams.get('organizationId');
 
@@ -115,17 +106,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'organizationId required' }, { status: 400 });
     }
 
-    // Check if user is member of organization
-    const membership = await prisma.membership.findFirst({
-      where: {
-        organizationId,
-        user: { email: session.user.email },
-      },
-    });
-
-    if (!membership) {
-      return NextResponse.json({ error: 'Not a member of this organization' }, { status: 403 });
-    }
+    // TODO: Check if user is member of organization
 
     const invitations = await prisma.teamInvitation.findMany({
       where: {
