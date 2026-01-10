@@ -8,11 +8,10 @@ import bcrypt from 'bcryptjs';
 const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    // Google OAuth temporarily disabled - add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to Railway to enable
-    // GoogleProvider({
-    //   clientId: process.env.GOOGLE_CLIENT_ID || '',
-    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    // }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
