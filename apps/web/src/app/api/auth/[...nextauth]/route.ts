@@ -1,7 +1,7 @@
 import NextAuth, { AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 
 const authOptions: AuthOptions = {
@@ -21,10 +21,8 @@ const authOptions: AuthOptions = {
           throw new Error('Invalid credentials');
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
+        const user = await db.user.findUnique({
+          email: credentials.email,
         });
 
         if (!user || !user.password) {
@@ -40,7 +38,12 @@ const authOptions: AuthOptions = {
           throw new Error('Invalid credentials');
         }
 
-        return user;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
       },
     }),
   ],
@@ -71,37 +74,36 @@ const authOptions: AuthOptions = {
     },
     async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
-        // Check if user exists, create if not
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! },
-        });
+        try {
+          // Check if user exists
+          const existingUser = await db.user.findUnique({
+            email: user.email!,
+          });
 
-        if (!existingUser) {
-          // Create user from Google OAuth
-          const newUser = await prisma.user.create({
-            data: {
+          if (!existingUser) {
+            // Create user from Google OAuth
+            const newUser = await db.user.create({
               email: user.email!,
               name: user.name || user.email!.split('@')[0],
-              image: user.image,
-            },
-          });
+              image: user.image || undefined,
+            });
 
-          // Create default organization
-          const org = await prisma.organization.create({
-            data: {
+            // Create default organization
+            const org = await db.organization.create({
               name: `${newUser.name}'s Organization`,
               slug: `${newUser.id}-org`,
-            },
-          });
+            });
 
-          // Create membership
-          await prisma.membership.create({
-            data: {
+            // Create membership
+            await db.membership.create({
               userId: newUser.id,
               organizationId: org.id,
               role: 'owner',
-            },
-          });
+            });
+          }
+        } catch (error) {
+          console.error('Google sign in error:', error);
+          return false;
         }
       }
       return true;

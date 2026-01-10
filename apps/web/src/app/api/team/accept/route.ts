@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 
 // GET /api/team/accept?token=xxx - Accept team invitation
 export async function GET(req: NextRequest) {
@@ -12,12 +12,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Find invitation
-    const invitation = await prisma.teamInvitation.findUnique({
-      where: { token },
-      include: {
-        organization: true,
-      },
-    });
+    const invitation = await db.teamInvitation.findUnique({ token });
 
     if (!invitation) {
       return NextResponse.json({ error: 'Invalid invitation token' }, { status: 404 });
@@ -28,17 +23,12 @@ export async function GET(req: NextRequest) {
     }
 
     if (new Date() > invitation.expiresAt) {
-      await prisma.teamInvitation.update({
-        where: { id: invitation.id },
-        data: { status: 'expired' },
-      });
+      await db.teamInvitation.update({ id: invitation.id }, { status: 'expired' });
       return NextResponse.json({ error: 'Invitation expired' }, { status: 400 });
     }
 
     // Check if user exists
-    let user = await prisma.user.findUnique({
-      where: { email: invitation.email },
-    });
+    const user = await db.user.findUnique({ email: invitation.email });
 
     // If user doesn't exist, they need to sign up first
     if (!user) {
@@ -48,19 +38,14 @@ export async function GET(req: NextRequest) {
     }
 
     // Create membership
-    await prisma.membership.create({
-      data: {
-        userId: user.id,
-        organizationId: invitation.organizationId,
-        role: invitation.role,
-      },
+    await db.membership.create({
+      userId: user.id,
+      organizationId: invitation.organizationId,
+      role: invitation.role,
     });
 
     // Mark invitation as accepted
-    await prisma.teamInvitation.update({
-      where: { id: invitation.id },
-      data: { status: 'accepted' },
-    });
+    await db.teamInvitation.update({ id: invitation.id }, { status: 'accepted' });
 
     // Redirect to organization dashboard
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/dashboard`);

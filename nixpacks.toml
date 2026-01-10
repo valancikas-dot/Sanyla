@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "openssl", "libressl"]
+nixPkgs = ["nodejs_20", "openssl"]
 
 [phases.install]
 cmds = [
@@ -8,13 +8,7 @@ cmds = [
 ]
 
 [phases.build]
-cmds = [
-  "cd apps/web && npx prisma generate --schema prisma/schema.prisma",
-  "pnpm run build:web"
-]
+cmds = ["pnpm run build:web"]
 
 [start]
 cmd = "pnpm run start:web"
-
-[variables]
-PRISMA_CLI_BINARY_TARGETS = "linux-musl-openssl-3.0.x"

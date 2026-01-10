@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
@@ -14,9 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await db.user.findUnique({ email });
 
     if (existingUser) {
       return NextResponse.json(
@@ -29,29 +27,23 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name: name || email.split('@')[0],
-      },
+    const user = await db.user.create({
+      email,
+      password: hashedPassword,
+      name: name || email.split('@')[0],
     });
 
     // Create default organization for the user
-    const org = await prisma.organization.create({
-      data: {
-        name: `${user.name}'s Organization`,
-        slug: `${user.id}-org`,
-      },
+    const org = await db.organization.create({
+      name: `${user.name}'s Organization`,
+      slug: `${user.id}-org`,
     });
 
     // Create membership
-    await prisma.membership.create({
-      data: {
-        userId: user.id,
-        organizationId: org.id,
-        role: 'owner',
-      },
+    await db.membership.create({
+      userId: user.id,
+      organizationId: org.id,
+      role: 'owner',
     });
 
     return NextResponse.json(
