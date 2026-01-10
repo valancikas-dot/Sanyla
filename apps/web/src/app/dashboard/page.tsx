@@ -1,37 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await api.getMe();
-        setUser(res.data);
-        
-        // If user has orgs, redirect to first org's projects
-        if (res.data.organizations && res.data.organizations.length > 0) {
-          router.push(`/org/${res.data.organizations[0].id}/projects`);
-        }
-      } catch (error) {
-        router.push('/auth');
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (status === 'unauthenticated') {
+      router.push('/auth');
+    }
+  }, [status, router]);
 
-    fetchUser();
-  }, [router]);
-
-  if (loading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Kraunama...</p>
@@ -39,34 +24,39 @@ export default function DashboardPage() {
     );
   }
 
+  if (!session) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Sveiki, {user?.name || user?.email}</h1>
-        
-        <div className="grid gap-4">
-          {user?.organizations?.map((org: any) => (
-            <Card key={org.id}>
-              <CardHeader>
-                <CardTitle>{org.name}</CardTitle>
-                <CardDescription>Rolė: {org.role}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button onClick={() => router.push(`/org/${org.id}/projects`)}>
-                  Peržiūrėti projektus
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-          
-          {(!user?.organizations || user.organizations.length === 0) && (
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-muted-foreground">Nerasta organizacijų. Susisiekite su palaikymo komanda.</p>
-              </CardContent>
-            </Card>
-          )}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Sveiki, {session.user?.name || session.user?.email}</h1>
+          <Button variant="outline" onClick={() => signOut({ callbackUrl: '/auth' })}>
+            Atsijungti
+          </Button>
         </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Jūsų profilis</CardTitle>
+            <CardDescription>Prisijungimo informacija</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p><strong>Vardas:</strong> {session.user?.name || 'Nenurodyta'}</p>
+              <p><strong>El. paštas:</strong> {session.user?.email}</p>
+              {session.user?.image && (
+                <img 
+                  src={session.user.image} 
+                  alt="Profilio nuotrauka" 
+                  className="w-16 h-16 rounded-full mt-4"
+                />
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
