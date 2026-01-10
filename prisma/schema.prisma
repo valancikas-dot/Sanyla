@@ -31,8 +31,9 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships Membership[]
-  projects    Project[]
+  memberships  Membership[]
+  projects     Project[]
+  subscription Subscription?
 
   @@map("organizations")
 }
@@ -449,4 +450,94 @@ model ChatMessage {
   createdAt   DateTime @default(now())
 
   @@map("chat_messages")
+}
+
+// Subscription Plans
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  PAUSED
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  organizationId String             @unique
+  plan           SubscriptionPlan   @default(FREE)
+  status         SubscriptionStatus @default(ACTIVE)
+  
+  // Limits
+  maxProjects        Int     @default(1)
+  maxAIImages        Int     @default(5)
+  maxAIVideos        Int     @default(0)
+  maxSocialAccounts  Int     @default(1)
+  maxTeamMembers     Int     @default(1)
+  
+  // Usage tracking
+  usedAIImages       Int     @default(0)
+  usedAIVideos       Int     @default(0)
+  
+  // Billing
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean  @default(false)
+  
+  // Stripe integration
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  stripePriceId          String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payments     Payment[]
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  amount         Int // in cents (e.g., 2900 for €29.00)
+  currency       String   @default("EUR")
+  status         String // succeeded, pending, failed
+  
+  // Stripe
+  stripePaymentIntentId String?
+  stripeInvoiceId       String?
+  
+  // Metadata
+  plan           SubscriptionPlan
+  billingPeriod  String // monthly, yearly
+  
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// Usage tracking for limits
+model UsageLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  resourceType   String // AI_IMAGE, AI_VIDEO, PROJECT, SOCIAL_ACCOUNT
+  action         String // CREATE, DELETE
+  quantity       Int      @default(1)
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, resourceType])
+  @@map("usage_logs")
 }
