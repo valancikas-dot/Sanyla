@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 // Lazy pool initialization
 let pool: Pool | null = null;
 
-function getPool(): Pool {
+export function getPool(): Pool {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
     
