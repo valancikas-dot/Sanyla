@@ -9,23 +9,23 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 export default function HomePage() {
   const { t } = useLanguage();
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-blue-600 backdrop-blur-xl border-b border-white/10 shadow-lg">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-cyan-500 backdrop-blur-xl border-b border-white/10 shadow-lg">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-white/10 backdrop-blur-sm p-1.5 shadow-xl">
+            {/* LogoOnly - Bigger */}
+            <Link href="/" className="flex items-center">
+              <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden bg-white/10 backdrop-blur-sm p-2 shadow-xl hover:scale-105 transition-transform">
                 <Image 
                   src="/logo.png" 
                   alt="Sanyla" 
-                  width={48} 
-                  height={48}
+                  width={64} 
+                  height={64}
                   className="object-contain drop-shadow-lg"
                 />
               </div>
-              <span className="text-3xl font-bold text-white drop-shadow-lg">Sanyla</span>
-            </div>
+            </Link>
             <div className="flex items-center gap-4">
               <LanguageSelector />
               <Link href="/pricing" className="px-6 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-semibold">
@@ -34,7 +34,7 @@ export default function HomePage() {
               <Link href="/auth" className="px-6 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all font-semibold">
                 {t('auth.login_button')}
               </Link>
-              <Link href="/auth" className="px-6 py-2.5 bg-white text-purple-600 hover:bg-white/90 rounded-lg transition-all font-semibold shadow-lg">
+              <Link href="/auth" className="px-6 py-2.5 bg-white text-blue-600 hover:bg-white/90 rounded-lg transition-all font-semibold shadow-lg">
                 {t('auth.signup_button')}
               </Link>
             </div>
@@ -52,18 +52,18 @@ export default function HomePage() {
             </div>
             
             <h1 className="text-5xl md:text-7xl font-black leading-tight text-white">
-              Generuok <span className="text-gradient bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">30 dienų</span><br />
-              marketingo planą per <span className="text-gradient bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">30 sekundžių</span>
+              Generuok <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 dienų</span><br />
+              marketingo planą per <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 sekundžių</span>
             </h1>
             
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               AI pagalba sukurk strategijas, kalendorius, postus ir Reels scenarijus. 
-              Palaikome <span className="text-purple-400 font-semibold">17 kalbų</span> — 
+              Palaikome <span className="text-cyan-400 font-semibold">17 kalbų</span> — 
               nuo lietuvių iki ispanų.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link href="/auth" className="btn-primary text-lg px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 rounded-xl shadow-lg">
+              <Link href="/auth" className="btn-primary text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 rounded-xl shadow-lg">
                 <Zap className="w-5 h-5 mr-2" />
                 Pradėti Nemokamai
               </Link>
@@ -78,11 +78,11 @@ export default function HomePage() {
                 <span className="text-gray-300">Jokių kreditinių kortelių</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
                 <span className="text-gray-300">GPT-4 Turbo AI</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
                 <span className="text-gray-300">17 kalbų palaikymas</span>
               </div>
             </div>
@@ -107,14 +107,14 @@ export default function HomePage() {
       <section className="py-20 px-6">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-white">Viskas, ko reikia <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">marketingui</span></h2>
+            <h2 className="text-4xl font-bold mb-4 text-white">Viskas, ko reikia <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">marketingui</span></h2>
             <p className="text-xl text-gray-300">5 AI generatoriai. Viena platforma. Begalinės galimybės.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-all group">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Calendar className="w-6 h-6 text-purple-400" />
+              <div className="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Calendar className="w-6 h-6 text-cyan-400" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-white">30 dienų strategija</h3>
               <p className="text-gray-400">
@@ -153,8 +153,8 @@ export default function HomePage() {
             </div>
 
             <div className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-all group">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-6 h-6 text-purple-400" />
+              <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-6 h-6 text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold mb-2 text-white">Savaitiniai insights</h3>
               <p className="text-gray-400">
@@ -180,15 +180,15 @@ export default function HomePage() {
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center space-y-2">
-              <div className="text-5xl font-black bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">30s</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30s</div>
               <div className="text-gray-300">Strategija sugeneruojama</div>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-5xl font-black bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">17</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">17</div>
               <div className="text-gray-300">Palaikomų kalbų</div>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-5xl font-black bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">5</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">5</div>
               <div className="text-gray-300">AI generatoriai</div>
             </div>
           </div>
@@ -200,13 +200,13 @@ export default function HomePage() {
         <div className="container mx-auto max-w-4xl">
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 text-center space-y-8 p-12 rounded-3xl">
             <h2 className="text-4xl md:text-5xl font-bold text-white">
-              Pasiruošęs <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">automatizuoti</span><br />
+              Pasiruošęs <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">automatizuoti</span><br />
               savo marketingą?
             </h2>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               Prisijunk nemokamai ir sugeneruok savo pirmą 30 dienų strategiją per 30 sekundžių.
             </p>
-            <Link href="/auth" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-lg px-8 py-4 inline-flex items-center rounded-xl shadow-lg">
+            <Link href="/auth" className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white text-lg px-8 py-4 inline-flex items-center rounded-xl shadow-lg">
               <Sparkles className="w-5 h-5 mr-2" />
               Pradėti Dabar
             </Link>
@@ -223,16 +223,15 @@ export default function HomePage() {
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
                 <Image 
                   src="/logo.png" 
                   alt="Sanyla" 
-                  width={32} 
-                  height={32}
+                  width={40} 
+                  height={40}
                   className="object-contain"
                 />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Sanyla</span>
             </div>
             <div className="text-sm text-gray-400">
               © 2026 Sanyla. AI Marketing Autopilot.
