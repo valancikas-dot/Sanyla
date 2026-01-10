@@ -142,7 +142,10 @@ export default function ProjectPage() {
                 <Settings className="w-4 h-4 mr-2" />
                 Nustatymai
               </Button>
-              <Button className="bg-gradient-to-r from-blue-500 to-purple-500">
+              <Button 
+                className="bg-gradient-to-r from-blue-500 to-purple-500"
+                onClick={() => router.push(`/dashboard/projects/${projectId}/generate`)}
+              >
                 <Sparkles className="w-4 h-4 mr-2" />
                 Generuoti turinį
               </Button>
@@ -178,19 +181,35 @@ export default function ProjectPage() {
                 <CardDescription>Generuokite marketingo turinį</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => router.push(`/dashboard/projects/${projectId}/generate?type=text`)}
+                >
                   <FileText className="w-4 h-4 mr-3" />
                   Generuoti reklamos tekstą
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => router.push(`/dashboard/projects/${projectId}/generate?type=image`)}
+                >
                   <ImageIcon className="w-4 h-4 mr-3" />
                   Generuoti reklamos paveikslėlį
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => router.push(`/dashboard/projects/${projectId}/generate?type=social`)}
+                >
                   <Share2 className="w-4 h-4 mr-3" />
                   Sukurti socialinių tinklų įrašą
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => router.push(`/dashboard/projects/${projectId}/generate?type=campaign`)}
+                >
                   <Calendar className="w-4 h-4 mr-3" />
                   Suplanuoti kampaniją
                 </Button>

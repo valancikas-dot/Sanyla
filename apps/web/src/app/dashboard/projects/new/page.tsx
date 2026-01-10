@@ -33,7 +33,8 @@ export default function NewProjectPage() {
         throw new Error(data.error || 'Klaida kuriant projektą');
       }
 
-      router.push('/dashboard/projects');
+      // Navigate to the new project
+      router.push(`/dashboard/projects/${data.project.id}`);
     } catch (err: any) {
       setError(err.message || 'Klaida kuriant projektą');
     } finally {
