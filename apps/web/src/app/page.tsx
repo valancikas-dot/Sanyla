@@ -5,9 +5,232 @@ import Image from 'next/image';
 import { Sparkles, Zap, Calendar, TrendingUp, Globe, Shield } from 'lucide-react';
 import { LanguageSelector } from '@/lib/i18n/LanguageSelector';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { Language } from '@marketing-autopilot/shared';
+
+// Homepage translations for all languages
+const homeTranslations: Record<Language, {
+  badge: string;
+  heroTitle1: string;
+  heroTitle2: string;
+  heroTitle3: string;
+  subtitle: string;
+  startButton: string;
+  demoButton: string;
+  noCredit: string;
+  gpt4: string;
+  languages17: string;
+}> = {
+  LITHUANIAN: {
+    badge: 'AI Marketingo Autopilotas',
+    heroTitle1: 'Generuok',
+    heroTitle2: '30 dienų',
+    heroTitle3: 'marketingo planą per 30 sekundžių',
+    subtitle: 'AI pagalba sukurk strategijas, kalendorius, postus ir Reels scenarijus. Palaikome 17 kalbų — nuo lietuvių iki ispanų.',
+    startButton: 'Pradėti Nemokamai',
+    demoButton: 'Žiūrėti Demo',
+    noCredit: 'Jokių kreditinių kortelių',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: '17 kalbų palaikymas',
+  },
+  ENGLISH: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Generate a',
+    heroTitle2: '30-day',
+    heroTitle3: 'marketing plan in 30 seconds',
+    subtitle: 'AI creates strategies, calendars, posts, and Reels scripts. Supporting 17 languages — from Lithuanian to Spanish.',
+    startButton: 'Start Free',
+    demoButton: 'Watch Demo',
+    noCredit: 'No credit card required',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: '17 languages support',
+  },
+  RUSSIAN: {
+    badge: 'AI Маркетинг Автопилот',
+    heroTitle1: 'Создайте',
+    heroTitle2: '30-дневный',
+    heroTitle3: 'маркетинг-план за 30 секунд',
+    subtitle: 'AI создает стратегии, календари, посты и сценарии Reels. Поддержка 17 языков — от литовского до испанского.',
+    startButton: 'Начать бесплатно',
+    demoButton: 'Смотреть демо',
+    noCredit: 'Кредитная карта не требуется',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Поддержка 17 языков',
+  },
+  POLISH: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Wygeneruj',
+    heroTitle2: '30-dniowy',
+    heroTitle3: 'plan marketingowy w 30 sekund',
+    subtitle: 'AI tworzy strategie, kalendarze, posty i scenariusze Reels. Obsługa 17 języków — od litewskiego do hiszpańskiego.',
+    startButton: 'Rozpocznij za darmo',
+    demoButton: 'Zobacz demo',
+    noCredit: 'Nie wymaga karty kredytowej',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Obsługa 17 języków',
+  },
+  GERMAN: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Erstellen Sie einen',
+    heroTitle2: '30-Tage',
+    heroTitle3: 'Marketingplan in 30 Sekunden',
+    subtitle: 'AI erstellt Strategien, Kalender, Posts und Reels-Skripte. Unterstützung für 17 Sprachen — von Litauisch bis Spanisch.',
+    startButton: 'Kostenlos starten',
+    demoButton: 'Demo ansehen',
+    noCredit: 'Keine Kreditkarte erforderlich',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Unterstützung für 17 Sprachen',
+  },
+  FRENCH: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Générez un plan',
+    heroTitle2: 'marketing de 30 jours',
+    heroTitle3: 'en 30 secondes',
+    subtitle: 'L\'IA crée des stratégies, calendriers, posts et scripts Reels. Support de 17 langues — du lituanien à l\'espagnol.',
+    startButton: 'Commencer gratuitement',
+    demoButton: 'Voir la démo',
+    noCredit: 'Aucune carte de crédit requise',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Support de 17 langues',
+  },
+  SPANISH: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Genera un plan',
+    heroTitle2: 'de marketing de 30 días',
+    heroTitle3: 'en 30 segundos',
+    subtitle: 'AI crea estrategias, calendarios, posts y guiones de Reels. Soporte para 17 idiomas — del lituano al español.',
+    startButton: 'Comenzar gratis',
+    demoButton: 'Ver demo',
+    noCredit: 'No se requiere tarjeta de crédito',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Soporte para 17 idiomas',
+  },
+  // Other languages use English as fallback
+  LATVIAN: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Izveidojiet',
+    heroTitle2: '30 dienu',
+    heroTitle3: 'mārketinga plānu 30 sekundēs',
+    subtitle: 'AI izveido stratēģijas, kalendārus, ierakstus un Reels skriptus. Atbalsta 17 valodas.',
+    startButton: 'Sākt bez maksas',
+    demoButton: 'Skatīt demo',
+    noCredit: 'Nav nepieciešama kredītkarte',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: '17 valodu atbalsts',
+  },
+  ESTONIAN: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Generate a',
+    heroTitle2: '30-day',
+    heroTitle3: 'marketing plan in 30 seconds',
+    subtitle: 'AI creates strategies, calendars, posts, and Reels scripts. Supporting 17 languages.',
+    startButton: 'Start Free',
+    demoButton: 'Watch Demo',
+    noCredit: 'No credit card required',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: '17 languages support',
+  },
+  ITALIAN: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Genera un piano',
+    heroTitle2: 'di marketing di 30 giorni',
+    heroTitle3: 'in 30 secondi',
+    subtitle: 'L\'AI crea strategie, calendari, post e script Reels. Supporto per 17 lingue.',
+    startButton: 'Inizia gratis',
+    demoButton: 'Guarda la demo',
+    noCredit: 'Nessuna carta di credito richiesta',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Supporto per 17 lingue',
+  },
+  PORTUGUESE: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Gere um plano',
+    heroTitle2: 'de marketing de 30 dias',
+    heroTitle3: 'em 30 segundos',
+    subtitle: 'A IA cria estratégias, calendários, posts e roteiros de Reels. Suporte para 17 idiomas.',
+    startButton: 'Começar grátis',
+    demoButton: 'Ver demo',
+    noCredit: 'Não é necessário cartão de crédito',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Suporte para 17 idiomas',
+  },
+  DUTCH: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Genereer een',
+    heroTitle2: '30-daags',
+    heroTitle3: 'marketingplan in 30 seconden',
+    subtitle: 'AI creëert strategieën, kalenders, posts en Reels-scripts. Ondersteuning voor 17 talen.',
+    startButton: 'Gratis starten',
+    demoButton: 'Demo bekijken',
+    noCredit: 'Geen creditcard vereist',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Ondersteuning voor 17 talen',
+  },
+  SWEDISH: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Skapa en',
+    heroTitle2: '30-dagars',
+    heroTitle3: 'marknadsplan på 30 sekunder',
+    subtitle: 'AI skapar strategier, kalendrar, inlägg och Reels-manus. Stöd för 17 språk.',
+    startButton: 'Börja gratis',
+    demoButton: 'Se demo',
+    noCredit: 'Inget kreditkort krävs',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Stöd för 17 språk',
+  },
+  NORWEGIAN: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Generer en',
+    heroTitle2: '30-dagers',
+    heroTitle3: 'markedsplan på 30 sekunder',
+    subtitle: 'AI lager strategier, kalendere, innlegg og Reels-manus. Støtte for 17 språk.',
+    startButton: 'Start gratis',
+    demoButton: 'Se demo',
+    noCredit: 'Ingen kredittkort nødvendig',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Støtte for 17 språk',
+  },
+  DANISH: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Generer en',
+    heroTitle2: '30-dages',
+    heroTitle3: 'marketingplan på 30 sekunder',
+    subtitle: 'AI skaber strategier, kalendere, opslag og Reels-manuskripter. Support til 17 sprog.',
+    startButton: 'Start gratis',
+    demoButton: 'Se demo',
+    noCredit: 'Intet kreditkort påkrævet',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Support til 17 sprog',
+  },
+  FINNISH: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Luo',
+    heroTitle2: '30 päivän',
+    heroTitle3: 'markkinointisuunnitelma 30 sekunnissa',
+    subtitle: 'Tekoäly luo strategioita, kalentereita, julkaisuja ja Reels-käsikirjoituksia. Tuki 17 kielelle.',
+    startButton: 'Aloita ilmaiseksi',
+    demoButton: 'Katso demo',
+    noCredit: 'Luottokorttia ei tarvita',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Tuki 17 kielelle',
+  },
+  CZECH: {
+    badge: 'AI Marketing Autopilot',
+    heroTitle1: 'Vytvořte',
+    heroTitle2: '30denní',
+    heroTitle3: 'marketingový plán za 30 sekund',
+    subtitle: 'AI vytváří strategie, kalendáře, příspěvky a scénáře Reels. Podpora 17 jazyků.',
+    startButton: 'Začít zdarma',
+    demoButton: 'Zobrazit demo',
+    noCredit: 'Není vyžadována kreditní karta',
+    gpt4: 'GPT-4 Turbo AI',
+    languages17: 'Podpora 17 jazyků',
+  },
+};
 
 export default function HomePage() {
   const { t, language } = useLanguage();
+  const trans = homeTranslations[language] || homeTranslations.ENGLISH;
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Navigation */}
@@ -48,54 +271,40 @@ export default function HomePage() {
           <div className="text-center space-y-8 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">
-                {language === 'ENGLISH' ? 'AI Marketing Autopilot' : 'AI Marketingo Autopilotas'}
-              </span>
+              <span className="text-sm font-medium text-primary">{trans.badge}</span>
             </div>
             
             <h1 className="text-5xl md:text-7xl font-black leading-tight text-white">
-              {language === 'ENGLISH' ? (
-                <>
-                  Generate a <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30-day</span><br />
-                  marketing plan in <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 seconds</span>
-                </>
-              ) : (
-                <>
-                  Generuok <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 dienų</span><br />
-                  marketingo planą per <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">30 sekundžių</span>
-                </>
-              )}
+              {trans.heroTitle1} <span className="text-gradient bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">{trans.heroTitle2}</span><br />
+              {trans.heroTitle3}
             </h1>
             
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              {language === 'ENGLISH' 
-                ? `AI creates strategies, calendars, posts, and Reels scripts. Supporting 17 languages — from Lithuanian to Spanish.`
-                : `AI pagalba sukurk strategijas, kalendorius, postus ir Reels scenarijus. Palaikome 17 kalbų — nuo lietuvių iki ispanų.`
-              }
+              {trans.subtitle}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Link href="/auth" className="btn-primary text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 rounded-xl shadow-lg">
                 <Zap className="w-5 h-5 mr-2" />
-                {language === 'ENGLISH' ? 'Start Free' : 'Pradėti Nemokamai'}
+                {trans.startButton}
               </Link>
               <button className="text-lg px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-sm border border-white/20">
-                {language === 'ENGLISH' ? 'Watch Demo' : 'Žiūrėti Demo'}
+                {trans.demoButton}
               </button>
             </div>
 
             <div className="flex items-center justify-center gap-8 pt-8 text-sm text-gray-400">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-gray-300">Jokių kreditinių kortelių</span>
+                <span className="text-gray-300">{trans.noCredit}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                <span className="text-gray-300">GPT-4 Turbo AI</span>
+                <span className="text-gray-300">{trans.gpt4}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-                <span className="text-gray-300">17 kalbų palaikymas</span>
+                <span className="text-gray-300">{trans.languages17}</span>
               </div>
             </div>
           </div>
