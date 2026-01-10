@@ -73,12 +73,16 @@ const authOptions: AuthOptions = {
       return session;
     },
     async signIn({ user, account, profile }) {
+      console.log('SignIn callback called:', { provider: account?.provider, email: user.email });
+      
       if (account?.provider === 'google') {
         try {
           // Check if user exists
           const existingUser = await db.user.findUnique({
             email: user.email!,
           });
+          
+          console.log('Existing user:', existingUser ? 'found' : 'not found');
 
           if (!existingUser) {
             // Create user from Google OAuth
@@ -87,12 +91,16 @@ const authOptions: AuthOptions = {
               name: user.name || user.email!.split('@')[0],
               image: user.image || undefined,
             });
+            
+            console.log('New user created:', newUser.id);
 
             // Create default organization
             const org = await db.organization.create({
               name: `${newUser.name}'s Organization`,
               slug: `${newUser.id}-org`,
             });
+            
+            console.log('Organization created:', org.id);
 
             // Create membership
             await db.membership.create({
@@ -100,7 +108,12 @@ const authOptions: AuthOptions = {
               organizationId: org.id,
               role: 'owner',
             });
+            
+            console.log('Membership created');
           }
+          
+          console.log('Google sign in SUCCESS');
+          return true;
         } catch (error) {
           console.error('Google sign in error:', error);
           return false;
