@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         content = await generateImageWithDALLE(openai, prompt, projectContext);
         break;
       default:
-        content = 'Nežinomas turinio tipas';
+        content = 'Unknown content type';
     }
 
     return NextResponse.json({ 
@@ -67,124 +67,166 @@ interface ProjectContext {
   targetAudience?: string;
   tone?: string;
   website?: string;
+  language?: string;
+}
+
+// Language names for prompts - all 17 supported languages
+const languageNames: Record<string, string> = {
+  'lt': 'Lithuanian',
+  'en': 'English', 
+  'de': 'German',
+  'fr': 'French',
+  'es': 'Spanish',
+  'it': 'Italian',
+  'pl': 'Polish',
+  'nl': 'Dutch',
+  'pt': 'Portuguese',
+  'ru': 'Russian',
+  'uk': 'Ukrainian',
+  'cs': 'Czech',
+  'sk': 'Slovak',
+  'hu': 'Hungarian',
+  'ro': 'Romanian',
+  'bg': 'Bulgarian',
+  'sv': 'Swedish',
+};
+
+function getLanguageName(code: string): string {
+  return languageNames[code] || 'English';
 }
 
 async function generateAdText(openai: OpenAI, prompt: string, context: ProjectContext): Promise<string> {
-  const systemPrompt = `Tu esi profesionalus marketingo specialistas, kuris kuria reklamos tekstus lietuvių kalba.
-Tavo tikslas - sukurti patrauklius, konvertuojančius reklamos tekstus.
+  const language = getLanguageName(context.language || 'en');
+  
+  const systemPrompt = `You are a professional marketing specialist who creates advertising copy.
+Your goal is to create attractive, converting advertising texts.
 
-Projekto informacija:
-- Pavadinimas: ${context.name || 'Nenurodyta'}
-- Industrija: ${context.industry || 'Nenurodyta'}
-- Pasiūlymas: ${context.offer || 'Nenurodyta'}
-- Tikslinė auditorija: ${context.targetAudience || 'Nenurodyta'}
-- Tonas: ${context.tone || 'professional'}
-- Svetainė: ${context.website || 'Nenurodyta'}
+CRITICAL: Generate ALL content in ${language} language. Every single word must be in ${language}.
 
-Sukurk 3 skirtingas reklamos teksto versijas:
-1. Trumpa (Facebook/Instagram - iki 125 simbolių)
-2. Vidutinė (Google Ads - iki 90 simbolių antraštė + 180 simbolių aprašymas)
-3. Ilga (Facebook/LinkedIn post - iki 500 simbolių)
+Project information:
+- Name: ${context.name || 'Not specified'}
+- Industry: ${context.industry || 'Not specified'}
+- Offer: ${context.offer || 'Not specified'}
+- Target audience: ${context.targetAudience || 'Not specified'}
+- Tone: ${context.tone || 'professional'}
+- Website: ${context.website || 'Not specified'}
 
-Naudok emoji, CTA mygtukus, ir įtraukiančią kalbą.`;
+Create 3 different versions of advertising copy in ${language}:
+1. Short (Facebook/Instagram - up to 125 characters)
+2. Medium (Google Ads - up to 90 character headline + 180 character description)
+3. Long (Facebook/LinkedIn post - up to 500 characters)
+
+Use emoji, CTA buttons, and engaging language. ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt || `Sukurk reklamos tekstą ${context.industry || 'verslui'}` }
+      { role: 'user', content: prompt }
     ],
     temperature: 0.8,
     max_tokens: 2000,
   });
 
-  return response.choices[0]?.message?.content || 'Nepavyko sugeneruoti turinio';
+  return response.choices[0]?.message?.content || 'Failed to generate content';
 }
 
 async function generateSocialPost(openai: OpenAI, prompt: string, context: ProjectContext): Promise<string> {
-  const systemPrompt = `Tu esi socialinių tinklų marketingo ekspertas, kuris kuria viralini turinį lietuvių kalba.
+  const language = getLanguageName(context.language || 'en');
+  
+  const systemPrompt = `You are a social media marketing expert who creates viral content.
 
-Projekto informacija:
-- Pavadinimas: ${context.name || 'Nenurodyta'}
-- Industrija: ${context.industry || 'Nenurodyta'}
-- Tikslinė auditorija: ${context.targetAudience || 'Nenurodyta'}
-- Tonas: ${context.tone || 'professional'}
+CRITICAL: Generate ALL content in ${language} language. Every single word must be in ${language}.
 
-Sukurk:
-1. 📸 INSTAGRAM POST (caption + 30 hashtag'ų)
-2. 📘 FACEBOOK POST (ilgesnis, įtraukiantis)
-3. 💼 LINKEDIN POST (profesionalus, verslo orientuotas)
-4. 🎵 TIKTOK/REELS aprašymas (trumpas, su trending hashtag'ais)
+Project information:
+- Name: ${context.name || 'Not specified'}
+- Industry: ${context.industry || 'Not specified'}
+- Target audience: ${context.targetAudience || 'Not specified'}
+- Tone: ${context.tone || 'professional'}
 
-Kiekvienam formatui pridėk:
-- Geriausią publikavimo laiką
-- Rekomenduojamą vizualo tipą
-- CTA (call-to-action)`;
+Create the following in ${language}:
+1. INSTAGRAM POST (caption + 30 relevant hashtags)
+2. FACEBOOK POST (longer, engaging)
+3. LINKEDIN POST (professional, business-oriented)
+4. TIKTOK/REELS description (short, with trending hashtags)
+
+For each format include:
+- Best posting time
+- Recommended visual type
+- CTA (call-to-action)
+
+ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt || `Sukurk socialinių tinklų turinį ${context.industry || 'verslui'}` }
+      { role: 'user', content: prompt }
     ],
     temperature: 0.9,
     max_tokens: 3000,
   });
 
-  return response.choices[0]?.message?.content || 'Nepavyko sugeneruoti turinio';
+  return response.choices[0]?.message?.content || 'Failed to generate content';
 }
 
 async function generateCampaign(openai: OpenAI, prompt: string, context: ProjectContext): Promise<string> {
-  const systemPrompt = `Tu esi strateginis marketingo konsultantas su 15+ metų patirtimi.
+  const language = getLanguageName(context.language || 'en');
+  
+  const systemPrompt = `You are a strategic marketing consultant with 15+ years of experience.
 
-Projekto informacija:
-- Pavadinimas: ${context.name || 'Nenurodyta'}
-- Industrija: ${context.industry || 'Nenurodyta'}
-- Tikslinė auditorija: ${context.targetAudience || 'Nenurodyta'}
-- Svetainė: ${context.website || 'Nenurodyta'}
+CRITICAL: Generate ALL content in ${language} language. Every single word must be in ${language}.
 
-Sukurk detalų 30 dienų marketingo kampanijos planą su:
+Project information:
+- Name: ${context.name || 'Not specified'}
+- Industry: ${context.industry || 'Not specified'}
+- Target audience: ${context.targetAudience || 'Not specified'}
+- Website: ${context.website || 'Not specified'}
 
-1. � TIKSLAI IR KPI
-   - Konkretūs, išmatuojami tikslai
-   - Sekimo metrikos
+Create a detailed 30-day marketing campaign plan including:
 
-2. 🎯 AUDITORIJOS ANALIZĖ
-   - Personas aprašymas
-   - Skausmo taškai
-   - Pirkimo kelionė
+1. GOALS AND KPIs
+   - Specific, measurable objectives
+   - Tracking metrics
 
-3. 📅 SAVAITINIS PLANAS (4 savaitės)
-   - Kiekvienos dienos veiksmai
-   - Turinio tipai
-   - Kanalai
+2. AUDIENCE ANALYSIS
+   - Persona description
+   - Pain points
+   - Buyer journey
 
-4. 💰 BIUDŽETO PASKIRSTYMAS
-   - Kanalų procentai
-   - Rekomenduojami biudžetai
+3. WEEKLY PLAN (4 weeks)
+   - Daily actions
+   - Content types
+   - Channels
 
-5. � A/B TESTAVIMO PLANAS
-   - Ką testuoti
-   - Kaip vertinti
+4. BUDGET ALLOCATION
+   - Channel percentages
+   - Recommended budgets
 
-6. 🔄 RETARGETING STRATEGIJA
+5. A/B TESTING PLAN
+   - What to test
+   - How to evaluate
 
-Būk konkretus ir praktiškas.`;
+6. RETARGETING STRATEGY
+
+Be specific and practical. ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt || `Sukurk marketingo kampaniją ${context.industry || 'verslui'}` }
+      { role: 'user', content: prompt || 'Create a complete marketing campaign' }
     ],
     temperature: 0.7,
     max_tokens: 4000,
   });
 
-  return response.choices[0]?.message?.content || 'Nepavyko sugeneruoti kampanijos';
+  return response.choices[0]?.message?.content || 'Failed to generate campaign';
 }
 
 async function generateImageWithDALLE(openai: OpenAI, prompt: string, context: ProjectContext): Promise<string> {
+  const language = getLanguageName(context.language || 'en');
+  
   try {
     // First, create an optimized prompt for DALL-E
     const promptResponse = await openai.chat.completions.create({
@@ -192,25 +234,23 @@ async function generateImageWithDALLE(openai: OpenAI, prompt: string, context: P
       messages: [
         { 
           role: 'system', 
-          content: `Tu esi DALL-E prompt inžinierius. Sukurk optimalų DALL-E 3 prompt anglų kalba 
-          reklamos paveikslėliui generuoti. Prompt turi būti detalus, profesionalus ir sukurti 
-          aukštos kokybės marketingo vizualą.
-          
-          Kontekstas:
-          - Verslas: ${context.name || 'Company'}
-          - Industrija: ${context.industry || 'Business'}
-          - Tonas: ${context.tone || 'professional'}
-          
-          Grąžink TIK prompt tekstą, be jokių paaiškinimų.`
+          content: `You are a DALL-E prompt engineer. Create an optimal DALL-E 3 prompt in English for generating a marketing advertisement image. The prompt should be detailed, professional and create a high-quality marketing visual.
+
+Context:
+- Business: ${context.name || 'Company'}
+- Industry: ${context.industry || 'Business'}
+- Tone: ${context.tone || 'professional'}
+
+Return ONLY the prompt text, without any explanations.`
         },
-        { role: 'user', content: prompt || `Sukurk reklamos paveikslėlį ${context.industry || 'verslui'}` }
+        { role: 'user', content: prompt || 'Create an advertisement image' }
       ],
       temperature: 0.7,
       max_tokens: 500,
     });
 
     const dallePrompt = promptResponse.choices[0]?.message?.content || 
-      `Professional marketing advertisement for ${context.industry || 'business'}, modern design, high quality`;
+      'Professional marketing advertisement for business, modern design, high quality';
 
     // Generate image with DALL-E 3
     const imageResponse = await openai.images.generate({
@@ -222,46 +262,73 @@ async function generateImageWithDALLE(openai: OpenAI, prompt: string, context: P
       style: 'vivid',
     });
 
-    const imageUrl = imageResponse.data?.[0]?.url || 'Nepavyko gauti nuorodos';
+    const imageUrl = imageResponse.data?.[0]?.url || 'Failed to get URL';
     const revisedPrompt = imageResponse.data?.[0]?.revised_prompt || '';
 
-    return `🎨 DALL-E 3 SUGENERUOTAS PAVEIKSLĖLIS
+    // Return result in the project's language
+    if (language === 'Lithuanian') {
+      return `DALL-E 3 SUGENERUOTAS PAVEIKSLĖLIS
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🖼️ PAVEIKSLĖLIO NUORODA:
+PAVEIKSLĖLIO NUORODA:
 ${imageUrl}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📝 NAUDOTAS PROMPT:
+NAUDOTAS PROMPT:
 ${dallePrompt}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🔄 DALL-E PATOBULINO Į:
+DALL-E PATOBULINO Į:
 ${revisedPrompt || 'N/A'}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PATARIMAI:
+- Atidarykite nuoroda naršyklėje ir išsaugokite
+- Naudokite Canva pridėti tekstą
+- Formatai: 1080x1080 (IG), 1200x628 (FB)
 
-💡 PATARIMAI:
-• Atidarykite nuorodą naršyklėje ir išsaugokite
-• Naudokite Canva pridėti tekstą
-• Formatai: 1080x1080 (IG), 1200x628 (FB)
+Nuoroda galioja 1 valandą - išsaugokite paveikslėlį!`;
+    }
+    
+    return `DALL-E 3 GENERATED IMAGE
 
-⏰ Nuoroda galioja 1 valandą - išsaugokite paveikslėlį!`;
+IMAGE URL:
+${imageUrl}
+
+PROMPT USED:
+${dallePrompt}
+
+DALL-E REVISED TO:
+${revisedPrompt || 'N/A'}
+
+TIPS:
+- Open the link in browser and save
+- Use Canva to add text
+- Formats: 1080x1080 (IG), 1200x628 (FB)
+
+Link expires in 1 hour - save the image!`;
 
   } catch (error: any) {
     console.error('DALL-E error:', error);
-    return `❌ PAVEIKSLĖLIO GENERAVIMAS NEPAVYKO
+    
+    if (language === 'Lithuanian') {
+      return `PAVEIKSLĖLIO GENERAVIMAS NEPAVYKO
 
 Klaida: ${error.message}
 
 Galimos priežastys:
-• OpenAI API limitas
-• Netinkamas turinys (content policy)
-• API rakto problema
+- OpenAI API limitas
+- Netinkamas turinys (content policy)
+- API rakto problema
 
 Bandykite vėliau arba pakeiskite aprašymą.`;
+    }
+    
+    return `IMAGE GENERATION FAILED
+
+Error: ${error.message}
+
+Possible reasons:
+- OpenAI API rate limit
+- Content policy violation
+- API key issue
+
+Try again later or change the description.`;
   }
 }
