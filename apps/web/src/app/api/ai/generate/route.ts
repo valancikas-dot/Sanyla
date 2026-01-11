@@ -95,8 +95,58 @@ function getLanguageName(code: string): string {
   return languageNames[code] || 'English';
 }
 
+// Detect language from user's prompt
+function detectLanguageFromPrompt(prompt: string): string {
+  const lowerPrompt = prompt.toLowerCase();
+  
+  // Lithuanian patterns
+  if (/[ąčęėįšųūž]|sukurk|sugeneruok|paruošk|parašyk|padėk|kampanij|nuotrauk|paveiksl/.test(lowerPrompt)) {
+    return 'Lithuanian';
+  }
+  
+  // German patterns
+  if (/[äöüß]|erstelle|generiere|schreibe|hilf|kampagne/.test(lowerPrompt)) {
+    return 'German';
+  }
+  
+  // French patterns
+  if (/[àâæçéèêëïîôùûü]|créer|générer|écrire|aide|campagne/.test(lowerPrompt)) {
+    return 'French';
+  }
+  
+  // Spanish patterns
+  if (/[áéíóúñ¿¡]|crear|generar|escribir|ayuda|campaña/.test(lowerPrompt)) {
+    return 'Spanish';
+  }
+  
+  // Polish patterns
+  if (/[ąćęłńóśźż]|utwórz|wygeneruj|napisz|pomóż|kampania/.test(lowerPrompt)) {
+    return 'Polish';
+  }
+  
+  // Russian patterns (Cyrillic)
+  if (/[а-яА-ЯёЁ]/.test(lowerPrompt)) {
+    return 'Russian';
+  }
+  
+  // Ukrainian patterns (Cyrillic with specific chars)
+  if (/[іїєґІЇЄҐ]/.test(lowerPrompt)) {
+    return 'Ukrainian';
+  }
+  
+  // Czech patterns
+  if (/[áčďéěíňóřšťúůýž]|vytvořit|generovat|napsat|pomoct|kampaň/.test(lowerPrompt)) {
+    return 'Czech';
+  }
+  
+  // Default to English
+  return 'English';
+}
+
 async function generateAdText(openai: OpenAI, prompt: string, context: ProjectContext): Promise<string> {
-  const language = getLanguageName(context.language || 'en');
+  // Use project language if set, otherwise detect from user's prompt
+  const detectedLanguage = detectLanguageFromPrompt(prompt);
+  const language = context.language ? getLanguageName(context.language) : detectedLanguage;
   
   const systemPrompt = `You are a professional marketing specialist who creates advertising copy.
 Your goal is to create attractive, converting advertising texts.
@@ -132,7 +182,9 @@ Use emoji, CTA buttons, and engaging language. ALL TEXT MUST BE IN ${language.to
 }
 
 async function generateSocialPost(openai: OpenAI, prompt: string, context: ProjectContext): Promise<string> {
-  const language = getLanguageName(context.language || 'en');
+  // Use project language if set, otherwise detect from user's prompt
+  const detectedLanguage = detectLanguageFromPrompt(prompt);
+  const language = context.language ? getLanguageName(context.language) : detectedLanguage;
   
   const systemPrompt = `You are a social media marketing expert who creates viral content.
 
@@ -171,7 +223,9 @@ ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
 }
 
 async function generateCampaign(openai: OpenAI, prompt: string, context: ProjectContext): Promise<string> {
-  const language = getLanguageName(context.language || 'en');
+  // Use project language if set, otherwise detect from user's prompt
+  const detectedLanguage = detectLanguageFromPrompt(prompt);
+  const language = context.language ? getLanguageName(context.language) : detectedLanguage;
   
   const systemPrompt = `You are a strategic marketing consultant with 15+ years of experience.
 
@@ -225,7 +279,9 @@ Be specific and practical. ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
 }
 
 async function generateImageWithDALLE(openai: OpenAI, prompt: string, context: ProjectContext): Promise<string> {
-  const language = getLanguageName(context.language || 'en');
+  // Use project language if set, otherwise detect from user's prompt
+  const detectedLanguage = detectLanguageFromPrompt(prompt);
+  const language = context.language ? getLanguageName(context.language) : detectedLanguage;
   
   try {
     // First, create an optimized prompt for DALL-E

@@ -21,7 +21,8 @@ import {
   Palette,
   Save,
   MessageCircle,
-  Bot
+  Bot,
+  Lightbulb
 } from 'lucide-react';
 
 interface Project {
@@ -137,6 +138,20 @@ export default function ProjectPage() {
               )}
             </div>
             <div className="flex gap-2">
+              <Button 
+                onClick={() => router.push(`/dashboard/projects/${projectId}/insights`)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+              >
+                <Lightbulb className="w-4 h-4 mr-2" />
+                AI Insights
+              </Button>
+              <Button 
+                onClick={() => router.push(`/dashboard/projects/${projectId}/calendar`)}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                30d Kalendorius
+              </Button>
               <Button 
                 variant="outline"
                 onClick={() => router.push(`/dashboard/projects/${projectId}/chat`)}
