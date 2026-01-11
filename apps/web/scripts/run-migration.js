@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const pool = new Pool({
-  connectionString: 'postgresql://postgres:GLWTpqYFuqRniFyOQLGuldveOgtUWjbJ@tramway.proxy.rlwy.net:59033/railway',
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
