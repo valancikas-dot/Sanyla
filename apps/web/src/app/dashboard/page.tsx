@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FolderKanban, Users, Settings, PlusCircle, Sparkles } from 'lucide-react';
+import { FolderKanban, Users, Settings, PlusCircle, Sparkles, Activity } from 'lucide-react';
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -30,6 +30,13 @@ export default function DashboardPage() {
       icon: Users,
       href: '/dashboard/team',
       color: 'bg-green-500'
+    },
+    { 
+      title: 'System Health', 
+      description: 'Patikrinti platformos būklę',
+      icon: Activity,
+      href: '/dashboard/system-health',
+      color: 'bg-orange-500'
     },
   ];
 

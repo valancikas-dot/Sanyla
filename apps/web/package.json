@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p ${PORT:-8080}",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate": "node scripts/run-migration.js",
+    "verify": "node scripts/verify-setup.js",
+    "check-health": "curl -s https://sanyla.site/api/health | node -e \"process.stdin.on('data', d => console.log(JSON.stringify(JSON.parse(d), null, 2)))\""
   },
   "dependencies": {
     "@marketing-autopilot/shared": "workspace:*",
