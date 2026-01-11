@@ -240,6 +240,51 @@ export default function ProjectPage() {
               </CardContent>
             </Card>
 
+            {/* AI Tools */}
+            <Card className="shadow-sm border-0 bg-gradient-to-br from-purple-50 to-blue-50 backdrop-blur">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-purple-600" />
+                  AI Automatizacija
+                </CardTitle>
+                <CardDescription>Pilna marketingo automatizacija</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start bg-white/80"
+                  onClick={() => router.push(`/dashboard/projects/${projectId}/calendar`)}
+                >
+                  <Calendar className="w-4 h-4 mr-3 text-blue-600" />
+                  30 dienų turinys
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start bg-white/80"
+                  onClick={() => router.push(`/dashboard/projects/${projectId}/social-accounts`)}
+                >
+                  <Share2 className="w-4 h-4 mr-3 text-green-600" />
+                  Socialiniai tinklai
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start bg-white/80"
+                  onClick={() => router.push(`/dashboard/projects/${projectId}/insights`)}
+                >
+                  <Lightbulb className="w-4 h-4 mr-3 text-orange-600" />
+                  AI įžvalgos
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start bg-white/80"
+                  onClick={() => router.push(`/dashboard/projects/${projectId}/chat`)}
+                >
+                  <MessageCircle className="w-4 h-4 mr-3 text-purple-600" />
+                  AI Asistentas
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Project Info */}
             <Card className="shadow-sm border-0 bg-white/80 backdrop-blur">
               <CardHeader>
