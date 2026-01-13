@@ -256,7 +256,7 @@ export default function ProjectPage() {
                   onClick={() => router.push(`/dashboard/projects/${projectId}/calendar`)}
                 >
                   <Calendar className="w-4 h-4 mr-3 text-blue-600" />
-                  30 dienų turinys
+                  7 dienų turinys
                 </Button>
                 <Button 
                   variant="outline" 

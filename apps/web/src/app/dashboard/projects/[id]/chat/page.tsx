@@ -85,7 +85,7 @@ Galiu jums padėti su:
 Tiesiog parašykite ko jums reikia, pavyzdžiui:
 - "Sukurk Facebook reklamą"
 - "Sugeneruok paveikslėlį reklamai"
-- "Paruošk 30 dienų kampanijos planą"
+- "Paruošk 7 dienų kampanijos planą"
 - "Sukurk Instagram įrašą apie nuolaidą"`,
           timestamp: new Date(),
         }]);
@@ -107,7 +107,7 @@ Tiesiog parašykite ko jums reikia, pavyzdžiui:
     }
     
     if (lowerText.includes('kampanij') || lowerText.includes('plan') || 
-        lowerText.includes('strategij') || lowerText.includes('30 dien')) {
+        lowerText.includes('strategij') || lowerText.includes('7 dien') || lowerText.includes('savait')) {
       return 'campaign';
     }
     
@@ -204,7 +204,7 @@ Tiesiog parašykite ko jums reikia, pavyzdžiui:
     { label: 'Reklamos tekstas', icon: FileText, prompt: 'Sukurk reklamos tekstą' },
     { label: 'Paveikslėlis', icon: ImageIcon, prompt: 'Sugeneruok reklamos paveikslėlį' },
     { label: 'Social media', icon: Share2, prompt: 'Sukurk Instagram ir Facebook įrašus' },
-    { label: 'Kampanija', icon: Calendar, prompt: 'Sukurk 30 dienų marketingo kampanijos planą' },
+    { label: '7 dienų planas', icon: Calendar, prompt: 'Sukurk 7 dienų marketingo kampanijos turinį' },
   ];
 
   if (isLoadingProject) {

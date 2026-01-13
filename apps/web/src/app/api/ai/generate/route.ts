@@ -223,13 +223,16 @@ ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
 }
 
 async function generateCampaign(openai: OpenAI, prompt: string, context: ProjectContext): Promise<string> {
-  // Use project language if set, otherwise detect from user's prompt
-  const detectedLanguage = detectLanguageFromPrompt(prompt);
-  const language = context.language ? getLanguageName(context.language) : detectedLanguage;
+  // ALWAYS use project language - this is critical!
+  const language = context.language || 'Lithuanian';
+  const languageName = getLanguageName(language);
   
   const systemPrompt = `You are a professional social media content creator and copywriter.
 
-CRITICAL: Generate ALL content in ${language} language. Every single word must be in ${language}.
+🚨 CRITICAL LANGUAGE RULE 🚨
+Generate EVERY SINGLE WORD in ${languageName} language.
+NOT in English. NOT in any other language. ONLY in ${languageName}.
+All captions, hashtags, CTAs, descriptions - EVERYTHING must be in ${languageName}.
 
 Project information:
 - Name: ${context.name || 'Not specified'}
@@ -239,49 +242,54 @@ Project information:
 - Tone: ${context.tone || 'professional'}
 - Website: ${context.website || 'Not specified'}
 
-Create 30 READY-TO-POST social media posts for 30 days campaign.
+Create 7 READY-TO-POST social media posts for a 7-day campaign.
 
-For EACH DAY (Day 1 to Day 30), provide:
+For EACH DAY (Day 1 to Day 7), provide:
 
-**DAY X - [THEME/TOPIC]**
-📅 Suggested posting date: [Date]
-⏰ Best time to post: [Time]
+**DAY X - [THEME/TOPIC in ${languageName}]**
+📅 Data: [Date]
+⏰ Geriausias laikas: [Time]
 
 📱 INSTAGRAM/REELS:
-[Ready-to-post caption with emojis, 2-3 sentences]
-🎬 Reel idea: [What to show in video]
-#️⃣ Hashtags: [30 relevant hashtags]
+[Ready-to-post caption in ${languageName} with emojis, 2-3 sentences]
+🎬 Reels video scenarijus: [Detailed 15-30 sec video script - what to film, transitions, text overlays]
+🖼️ Vizualinė idėja: [What image/video to create - be specific]
+#️⃣ Hashtags: [20-30 relevant hashtags in ${languageName}]
 
 📘 FACEBOOK:
-[Engaging post text, 3-4 sentences, conversational]
-👉 CTA: [Clear call to action]
+[Engaging post text in ${languageName}, 3-4 sentences, conversational]
+👉 CTA: [Clear call to action in ${languageName}]
+🖼️ Vizualas: [What image/graphic to use]
 
 💼 LINKEDIN:
-[Professional post, business-focused, 4-5 sentences]
-🔗 Include: [Relevant professional angle]
+[Professional post in ${languageName}, business-focused, 4-5 sentences]
+🔗 Kampas: [Professional angle]
+📊 Vizualas: [Infographic/image idea]
 
 ---
 
 REQUIREMENTS:
-✅ All 30 days must have COMPLETE, READY-TO-POST content
+✅ All 7 days must have COMPLETE, READY-TO-POST content in ${languageName}
 ✅ Mix content types: educational (40%), promotional (30%), engagement (20%), behind-scenes (10%)
-✅ Include specific CTAs: "Visit ${context.website}", "Contact us", "Learn more", etc.
-✅ Use emojis naturally
-✅ Hashtags must be relevant to ${context.industry}
+✅ Include specific CTAs: "Apsilankykite ${context.website}", "Susisiekite", "Sužinokite daugiau"
+✅ Use emojis naturally in ${languageName} context
+✅ Hashtags must be in ${languageName} AND relevant to ${context.industry}
 ✅ Content must speak directly to ${context.targetAudience}
 ✅ Tone: ${context.tone}
+✅ Each day needs DETAILED Reels video scenario (what to film, how long, transitions)
+✅ Each day needs SPECIFIC visual ideas (not generic - describe exact image/video)
 
-DO NOT give strategy or plans - ONLY give ready-to-post content for all 30 days.
-ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
+DO NOT give strategy or plans - ONLY give ready-to-post content for all 7 days.
+REMEMBER: ALL TEXT MUST BE IN ${languageName.toUpperCase()} - NO ENGLISH WORDS!`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt || 'Create 30 days of ready-to-post social media content' }
+      { role: 'user', content: prompt || `Sukurk 7 dienų socialinių tinklų turinio planą ${languageName} kalba` }
     ],
     temperature: 0.8,
-    max_tokens: 4096, // Maximum allowed for gpt-4-turbo-preview
+    max_tokens: 4096,
   });
 
   return response.choices[0]?.message?.content || 'Failed to generate campaign';
