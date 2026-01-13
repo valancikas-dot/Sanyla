@@ -6,14 +6,52 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, FolderPlus, Loader2 } from 'lucide-react';
+import { ArrowLeft, FolderPlus, Loader2, Sparkles } from 'lucide-react';
 
 export default function NewProjectPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState('');
+  const [website, setWebsite] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
+
+  const handleAnalyzeWebsite = async () => {
+    if (!website) {
+      setError('Įveskite svetainės adresą');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/ai/analyze-website', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ websiteUrl: website }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Nepavyko analizuoti svetainės');
+      }
+
+      // Auto-fill form with analyzed data
+      if (data.analysis) {
+        setName(data.analysis.businessName || name);
+        setIndustry(data.analysis.industry || industry);
+      }
+
+      alert('✅ Svetainė išanalizuota! Informacija automatiškai užpildyta.');
+    } catch (err: any) {
+      setError(err.message || 'Klaida analizuojant svetainę');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +103,45 @@ export default function NewProjectPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Website Auto-Fill */}
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  <p className="text-sm font-medium text-gray-900">AI Automatinis užpildymas</p>
+                </div>
+                <p className="text-xs text-gray-600 mb-3">
+                  Įveskite svetainės adresą - AI automatiškai išanalizuos ir užpildys projekto informaciją
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="www.jusu-svetaine.lt"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleAnalyzeWebsite}
+                    disabled={isAnalyzing || !website}
+                    variant="outline"
+                    className="whitespace-nowrap"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Analizuoja...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Analizuoti
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Manual Fields */}
               <div className="space-y-2">
                 <label htmlFor="name" className="text-sm font-medium">Projekto pavadinimas</label>
                 <Input
