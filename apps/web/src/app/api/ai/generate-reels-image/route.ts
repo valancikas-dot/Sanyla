@@ -40,10 +40,14 @@ export async function POST(req: NextRequest) {
       style: 'vivid',
     });
 
+    if (!imageResponse.data || imageResponse.data.length === 0) {
+      throw new Error('Failed to generate image');
+    }
+
     const imageUrl = imageResponse.data[0]?.url;
 
     if (!imageUrl) {
-      throw new Error('Failed to generate image');
+      throw new Error('Failed to generate image URL');
     }
 
     return NextResponse.json({ 
