@@ -252,41 +252,49 @@ For EACH DAY (Day 1 to Day 7), provide:
 
 📱 INSTAGRAM/REELS:
 [Ready-to-post caption in ${languageName} with emojis, 2-3 sentences]
-🎬 Reels video scenarijus: [Detailed 15-30 sec video script - what to film, transitions, text overlays]
-🖼️ Vizualinė idėja: [What image/video to create - be specific]
+🎬 Reels tekstas ekrane: [Short catchy text for Reels overlay - 5-7 words max]
+🖼️ REELS COVER: [DALL-E prompt for generating Reels cover image - detailed, specific, visual]
+� Kaip filmuoti: [Quick 15-sec filming instruction OR static image with text overlay]
 #️⃣ Hashtags: [20-30 relevant hashtags in ${languageName}]
 
 📘 FACEBOOK:
 [Engaging post text in ${languageName}, 3-4 sentences, conversational]
 👉 CTA: [Clear call to action in ${languageName}]
-🖼️ Vizualas: [What image/graphic to use]
+🖼️ Facebook vizualas: [DALL-E prompt for Facebook image - professional, eye-catching]
 
 💼 LINKEDIN:
 [Professional post in ${languageName}, business-focused, 4-5 sentences]
 🔗 Kampas: [Professional angle]
-📊 Vizualas: [Infographic/image idea]
+📊 LinkedIn vizualas: [DALL-E prompt for professional LinkedIn image/infographic]
 
 ---
 
 REQUIREMENTS:
 ✅ All 7 days must have COMPLETE, READY-TO-POST content in ${languageName}
+✅ Each post includes DALL-E prompts for generating actual images/Reels covers
 ✅ Mix content types: educational (40%), promotional (30%), engagement (20%), behind-scenes (10%)
-✅ Include specific CTAs: "Apsilankykite ${context.website}", "Susisiekite", "Sužinokite daugiau"
+✅ Include specific CTAs in ${languageName}: "Apsilankykite ${context.website}", "Susisiekite", "Sužinokite daugiau"
 ✅ Use emojis naturally in ${languageName} context
 ✅ Hashtags must be in ${languageName} AND relevant to ${context.industry}
 ✅ Content must speak directly to ${context.targetAudience}
 ✅ Tone: ${context.tone}
-✅ Each day needs DETAILED Reels video scenario (what to film, how long, transitions)
-✅ Each day needs SPECIFIC visual ideas (not generic - describe exact image/video)
+✅ DALL-E prompts must be in ENGLISH (for image generation) but very specific and detailed
+✅ Reels cover images should be vertical 9:16 ratio, eye-catching, with space for text overlay
+
+IMPORTANT FOR REELS:
+- Reels need SHORT text overlays (5-7 words max) that appear on screen
+- Cover image should be bold, colorful, attention-grabbing
+- Can be static image with text OR simple filming instruction
+- Think TikTok/Instagram style - fast, visual, engaging
 
 DO NOT give strategy or plans - ONLY give ready-to-post content for all 7 days.
-REMEMBER: ALL TEXT MUST BE IN ${languageName.toUpperCase()} - NO ENGLISH WORDS!`;
+REMEMBER: ALL CAPTIONS/HASHTAGS IN ${languageName.toUpperCase()}, DALL-E PROMPTS IN ENGLISH!`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt || `Sukurk 7 dienų socialinių tinklų turinio planą ${languageName} kalba` }
+      { role: 'user', content: prompt || `Sukurk 7 dienų socialinių tinklų turinio planą su Reels vizualais ${languageName} kalba` }
     ],
     temperature: 0.8,
     max_tokens: 4096,
