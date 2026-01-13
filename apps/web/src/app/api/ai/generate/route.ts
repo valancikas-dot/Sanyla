@@ -281,7 +281,7 @@ ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
       { role: 'user', content: prompt || 'Create 30 days of ready-to-post social media content' }
     ],
     temperature: 0.8,
-    max_tokens: 16000, // Increased for 30 days of content
+    max_tokens: 4096, // Maximum allowed for gpt-4-turbo-preview
   });
 
   return response.choices[0]?.message?.content || 'Failed to generate campaign';
