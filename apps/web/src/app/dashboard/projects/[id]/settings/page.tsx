@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   ArrowLeft, 
@@ -162,7 +161,7 @@ export default function ProjectSettingsPage() {
           <CardContent className="space-y-6">
             {/* Name */}
             <div className="space-y-2">
-              <Label htmlFor="name">Projekto pavadinimas *</Label>
+              <label htmlFor="name" className="text-sm font-medium">Projekto pavadinimas *</label>
               <Input
                 id="name"
                 value={formData.name}
@@ -173,7 +172,7 @@ export default function ProjectSettingsPage() {
 
             {/* Industry */}
             <div className="space-y-2">
-              <Label htmlFor="industry">Industrija</Label>
+              <label htmlFor="industry" className="text-sm font-medium">Industrija</label>
               <Input
                 id="industry"
                 value={formData.industry}
@@ -185,7 +184,7 @@ export default function ProjectSettingsPage() {
             {/* Country & City */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="country">Šalis</Label>
+                <label htmlFor="country" className="text-sm font-medium">Šalis</label>
                 <Input
                   id="country"
                   value={formData.country}
@@ -194,7 +193,7 @@ export default function ProjectSettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="city">Miestas</Label>
+                <label htmlFor="city" className="text-sm font-medium">Miestas</label>
                 <Input
                   id="city"
                   value={formData.city}
@@ -206,7 +205,7 @@ export default function ProjectSettingsPage() {
 
             {/* Website */}
             <div className="space-y-2">
-              <Label htmlFor="website">Svetainė</Label>
+              <label htmlFor="website" className="text-sm font-medium">Svetainė</label>
               <Input
                 id="website"
                 type="url"
@@ -218,7 +217,7 @@ export default function ProjectSettingsPage() {
 
             {/* Offer */}
             <div className="space-y-2">
-              <Label htmlFor="offer">Pasiūlymas / Produktas</Label>
+              <label htmlFor="offer" className="text-sm font-medium">Pasiūlymas / Produktas</label>
               <Textarea
                 id="offer"
                 value={formData.offer}
@@ -230,7 +229,7 @@ export default function ProjectSettingsPage() {
 
             {/* Target Audience */}
             <div className="space-y-2">
-              <Label htmlFor="targetAudience">Tikslinė auditorija</Label>
+              <label htmlFor="targetAudience" className="text-sm font-medium">Tikslinė auditorija</label>
               <Textarea
                 id="targetAudience"
                 value={formData.targetAudience}
@@ -242,7 +241,7 @@ export default function ProjectSettingsPage() {
 
             {/* Language */}
             <div className="space-y-2">
-              <Label htmlFor="language">Kalba</Label>
+              <label htmlFor="language" className="text-sm font-medium">Kalba</label>
               <select
                 id="language"
                 value={formData.language}
@@ -261,7 +260,7 @@ export default function ProjectSettingsPage() {
 
             {/* Tone */}
             <div className="space-y-2">
-              <Label htmlFor="tone">Tonas</Label>
+              <label htmlFor="tone" className="text-sm font-medium">Tonas</label>
               <select
                 id="tone"
                 value={formData.tone}
