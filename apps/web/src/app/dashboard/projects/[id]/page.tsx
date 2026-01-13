@@ -288,8 +288,20 @@ export default function ProjectPage() {
             {/* Project Info */}
             <Card className="shadow-sm border-0 bg-white/80 backdrop-blur">
               <CardHeader>
-                <CardTitle>Projekto informacija</CardTitle>
-                <CardDescription>Pagrindiniai duomenys</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Projekto informacija</CardTitle>
+                    <CardDescription>Pagrindiniai duomenys</CardDescription>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => router.push(`/dashboard/projects/${projectId}/settings`)}
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Redaguoti
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3 text-sm">
