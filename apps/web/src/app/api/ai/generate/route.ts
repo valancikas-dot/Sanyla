@@ -227,52 +227,61 @@ async function generateCampaign(openai: OpenAI, prompt: string, context: Project
   const detectedLanguage = detectLanguageFromPrompt(prompt);
   const language = context.language ? getLanguageName(context.language) : detectedLanguage;
   
-  const systemPrompt = `You are a strategic marketing consultant with 15+ years of experience.
+  const systemPrompt = `You are a professional social media content creator and copywriter.
 
 CRITICAL: Generate ALL content in ${language} language. Every single word must be in ${language}.
 
 Project information:
 - Name: ${context.name || 'Not specified'}
 - Industry: ${context.industry || 'Not specified'}
+- Offer/Product: ${context.offer || 'Not specified'}
 - Target audience: ${context.targetAudience || 'Not specified'}
+- Tone: ${context.tone || 'professional'}
 - Website: ${context.website || 'Not specified'}
 
-Create a detailed 30-day marketing campaign plan including:
+Create 30 READY-TO-POST social media posts for 30 days campaign.
 
-1. GOALS AND KPIs
-   - Specific, measurable objectives
-   - Tracking metrics
+For EACH DAY (Day 1 to Day 30), provide:
 
-2. AUDIENCE ANALYSIS
-   - Persona description
-   - Pain points
-   - Buyer journey
+**DAY X - [THEME/TOPIC]**
+📅 Suggested posting date: [Date]
+⏰ Best time to post: [Time]
 
-3. WEEKLY PLAN (4 weeks)
-   - Daily actions
-   - Content types
-   - Channels
+📱 INSTAGRAM/REELS:
+[Ready-to-post caption with emojis, 2-3 sentences]
+🎬 Reel idea: [What to show in video]
+#️⃣ Hashtags: [30 relevant hashtags]
 
-4. BUDGET ALLOCATION
-   - Channel percentages
-   - Recommended budgets
+📘 FACEBOOK:
+[Engaging post text, 3-4 sentences, conversational]
+👉 CTA: [Clear call to action]
 
-5. A/B TESTING PLAN
-   - What to test
-   - How to evaluate
+💼 LINKEDIN:
+[Professional post, business-focused, 4-5 sentences]
+🔗 Include: [Relevant professional angle]
 
-6. RETARGETING STRATEGY
+---
 
-Be specific and practical. ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
+REQUIREMENTS:
+✅ All 30 days must have COMPLETE, READY-TO-POST content
+✅ Mix content types: educational (40%), promotional (30%), engagement (20%), behind-scenes (10%)
+✅ Include specific CTAs: "Visit ${context.website}", "Contact us", "Learn more", etc.
+✅ Use emojis naturally
+✅ Hashtags must be relevant to ${context.industry}
+✅ Content must speak directly to ${context.targetAudience}
+✅ Tone: ${context.tone}
+
+DO NOT give strategy or plans - ONLY give ready-to-post content for all 30 days.
+ALL TEXT MUST BE IN ${language.toUpperCase()}.`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt || 'Create a complete marketing campaign' }
+      { role: 'user', content: prompt || 'Create 30 days of ready-to-post social media content' }
     ],
-    temperature: 0.7,
-    max_tokens: 4000,
+    temperature: 0.8,
+    max_tokens: 16000, // Increased for 30 days of content
   });
 
   return response.choices[0]?.message?.content || 'Failed to generate campaign';
