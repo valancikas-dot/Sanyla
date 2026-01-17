@@ -97,51 +97,7 @@ export const authOptions: AuthOptions = {
             console.log('New user created:', existingUser.id);
           }
 
-          // Check if user has organization membership
-          const { Pool } = await import('pg');
-          const pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
-            ssl: { rejectUnauthorized: false }
-          });
-          const conn = await pool.connect();
-          
-          try {
-            const membershipResult = await conn.query(
-              'SELECT "organizationId" FROM "memberships" WHERE "userId" = $1 LIMIT 1',
-              [existingUser.id]
-            );
-            
-            if (!membershipResult.rows[0]) {
-              console.log('No membership found, creating organization...');
-              
-              // Create default organization
-              const org = await prisma.organization.create({
-                data: {
-                  name: `${existingUser.name}'s Organization`,
-                  slug: `${existingUser.id}-org`,
-                },
-              });
-              
-              console.log('Organization created:', org.id);
-
-              // Create membership
-              await prisma.membership.create({
-                data: {
-                  userId: existingUser.id,
-                  organizationId: org.id,
-                  role: 'owner',
-                },
-              });
-              
-              console.log('Membership created');
-            } else {
-              console.log('User already has organization');
-            }
-          } finally {
-            conn.release();
-            await pool.end();
-          }
-          
+          // User can sign in without organization - no need to check or create
           console.log('Google sign in SUCCESS');
           return true;
         } catch (error) {
