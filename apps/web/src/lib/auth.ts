@@ -73,52 +73,13 @@ export const authOptions: AuthOptions = {
       return session;
     },
     async signIn({ user, account }) {
-      console.log('=== SignIn callback START ===');
-      console.log('Provider:', account?.provider);
-      console.log('User email:', user.email);
-      console.log('User name:', user.name);
-      console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
-      console.log('GOOGLE_CLIENT_ID exists:', !!process.env.GOOGLE_CLIENT_ID);
-      
+      // Allow all Google sign-ins - user creation happens lazily on first dashboard access
       if (account?.provider === 'google') {
-        try {
-          console.log('Attempting to find user in database...');
-          
-          // Check if user exists
-          let existingUser = await prisma.user.findUnique({
-            where: { email: user.email! },
-          });
-          
-          console.log('Existing user found:', !!existingUser);
-
-          if (!existingUser) {
-            console.log('Creating new user...');
-            // Create user from Google OAuth
-            existingUser = await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name || user.email!.split('@')[0],
-                image: user.image || undefined,
-              },
-            });
-            
-            console.log('New user created with ID:', existingUser.id);
-          } else {
-            console.log('User already exists with ID:', existingUser.id);
-          }
-
-          console.log('=== Google sign in SUCCESS ===');
-          return true;
-        } catch (error) {
-          console.error('=== Google sign in ERROR ===');
-          console.error('Error type:', error?.constructor?.name);
-          console.error('Error message:', (error as any)?.message);
-          console.error('Error stack:', (error as any)?.stack);
-          return false;
-        }
+        console.log('[NextAuth] Google sign-in for:', user.email);
+        return true;
       }
       
-      console.log('=== SignIn callback END (non-Google) ===');
+      // Allow credentials sign-in (already validated in authorize())
       return true;
     },
   },
