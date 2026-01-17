@@ -5,13 +5,21 @@ import { PrismaClient } from '@prisma/client';
 import OpenAI from 'openai';
 
 const prisma = new PrismaClient();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Lazy OpenAI initialization
+function getOpenAI() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is required');
+  }
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 // Credit cost for post rewrite
 const REWRITE_CREDIT_COST = 5;
 
 export async function POST(request: NextRequest) {
   try {
+    const openai = getOpenAI();
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

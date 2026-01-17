@@ -1,5 +1,8 @@
-# Use Node.js 20 Alpine - No Prisma, using pg directly
+# Use Node.js 20 Alpine
 FROM node:20-alpine AS base
+
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
 
 # Install pnpm
 RUN npm install -g pnpm@10.27.0
