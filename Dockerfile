@@ -1,8 +1,8 @@
 # Use Node.js 20 Alpine
 FROM node:20-alpine AS base
 
-# Install OpenSSL for Prisma
-RUN apk add --no-cache openssl
+# Install OpenSSL 1.1 for Prisma (Alpine only has openssl3, need compatibility layer)
+RUN apk add --no-cache openssl1.1-compat
 
 # Install pnpm
 RUN npm install -g pnpm@10.27.0
@@ -34,6 +34,9 @@ RUN pnpm --filter @marketing-autopilot/web build
 
 # Production stage
 FROM node:20-alpine AS production
+
+# Install OpenSSL 1.1 for Prisma
+RUN apk add --no-cache openssl1.1-compat
 
 RUN npm install -g pnpm@10.27.0
 
