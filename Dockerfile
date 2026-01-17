@@ -13,10 +13,17 @@ COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
 COPY .npmrc ./
 
+# Copy Prisma schema
+COPY prisma ./prisma/
+COPY apps/web/prisma ./apps/web/prisma/
+
 # Install dependencies
 RUN pnpm install --no-frozen-lockfile
 
-# Copy source code
+# Generate Prisma Client
+RUN pnpm prisma generate
+
+# Copy rest of source code
 COPY . .
 
 # Build web app
