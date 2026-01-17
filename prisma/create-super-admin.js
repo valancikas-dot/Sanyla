@@ -24,12 +24,16 @@ async function main() {
     update: {
       role: 'super_admin',
       name,
+      aiCredits: 999999, // Unlimited credits for super admin
+      creditsPlan: 'enterprise',
     },
     create: {
       email,
       password: hashedPassword,
       name,
       role: 'super_admin',
+      aiCredits: 999999, // Unlimited credits for super admin
+      creditsPlan: 'enterprise',
     },
   });
 

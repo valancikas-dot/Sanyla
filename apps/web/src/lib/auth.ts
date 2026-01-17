@@ -1,7 +1,7 @@
 import { AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { db } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 export const authOptions: AuthOptions = {
@@ -21,8 +21,8 @@ export const authOptions: AuthOptions = {
           throw new Error('Invalid credentials');
         }
 
-        const user = await db.user.findUnique({
-          email: credentials.email,
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
         });
 
         if (!user || !user.password) {
@@ -78,7 +78,7 @@ export const authOptions: AuthOptions = {
       if (account?.provider === 'google') {
         try {
           // Check if user exists
-          let existingUser = await db.user.findUnique({
+          let existingUser = await prisma.user.findUnique({
             email: user.email!,
           });
           
@@ -86,7 +86,7 @@ export const authOptions: AuthOptions = {
 
           if (!existingUser) {
             // Create user from Google OAuth
-            existingUser = await db.user.create({
+            existingUser = await prisma.user.create({
               email: user.email!,
               name: user.name || user.email!.split('@')[0],
               image: user.image || undefined,
@@ -113,7 +113,7 @@ export const authOptions: AuthOptions = {
               console.log('No membership found, creating organization...');
               
               // Create default organization
-              const org = await db.organization.create({
+              const org = await prisma.organization.create({
                 name: `${existingUser.name}'s Organization`,
                 slug: `${existingUser.id}-org`,
               });
@@ -121,7 +121,7 @@ export const authOptions: AuthOptions = {
               console.log('Organization created:', org.id);
 
               // Create membership
-              await db.membership.create({
+              await prisma.membership.create({
                 userId: existingUser.id,
                 organizationId: org.id,
                 role: 'owner',

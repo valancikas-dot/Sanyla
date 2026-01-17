@@ -1,18 +1,24 @@
+import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 
-// Lazy pool initialization
+// Lazy Prisma Client initialization
+let prisma: PrismaClient | null = null;
+
+export function getPrisma(): PrismaClient {
+  if (!prisma) {
+    prisma = new PrismaClient();
+  }
+  return prisma;
+}
+
+// Lazy pool initialization (for legacy code)
 let pool: Pool | null = null;
 
 export function getPool(): Pool {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
     
-    // Debug log
-    console.log('DATABASE_URL exists:', !!connectionString);
-    console.log('DATABASE_URL starts with:', connectionString?.substring(0, 30) + '...');
-    
     if (!connectionString) {
-      console.error('DATABASE_URL is not set! Available env vars:', Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('POSTGRES')));
       throw new Error('DATABASE_URL environment variable is not set');
     }
     
