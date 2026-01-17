@@ -1,0 +1,223 @@
+/**
+ * Chat → Campaign Bridge API Route
+ * POST /api/chat/handle-message
+ * 
+ * Intelligently routes chat messages:
+ * - Campaign intent → triggers /api/ai/campaign-auto
+ * - Normal chat → passes to chat AI
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { detectIntent, getIntentName } from '@/lib/chat/intent-detection';
+import prisma from '@/lib/prisma';
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { 
+      projectId, 
+      message, 
+      autoGenerateImages = true,
+      language 
+    } = body;
+
+    if (!projectId || !message) {
+      return NextResponse.json(
+        { error: 'Missing projectId or message' }, 
+        { status: 400 }
+      );
+    }
+
+    // Verify user has access to project
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        organization: {
+          memberships: {
+            some: {
+              user: {
+                email: session.user.email
+              }
+            }
+          }
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        language: true,
+        industry: true,
+        offer: true,
+        targetAudience: true,
+        tone: true,
+        website: true,
+      }
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        { error: 'Project not found or access denied' }, 
+        { status: 404 }
+      );
+    }
+
+    // Detect intent
+    const intent = detectIntent(message);
+    const intentName = getIntentName(intent);
+    
+    console.log('[ChatBridge]', {
+      projectId,
+      intent: intentName,
+      messagePreview: message.substring(0, 50) + '...'
+    });
+
+    // ==========================================
+    // ROUTE 1: CAMPAIGN GENERATION
+    // ==========================================
+    if (intent === 'GENERATE_7_DAY_CAMPAIGN') {
+      try {
+        // Call campaign-auto endpoint
+        const campaignResponse = await fetch(
+          `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/ai/campaign-auto`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cookie': req.headers.get('cookie') || '', // Forward session
+            },
+            body: JSON.stringify({
+              projectId,
+              prompt: message,
+              autoGenerateImages,
+              language: language || project.language || 'lt',
+            }),
+          }
+        );
+
+        const campaignData = await campaignResponse.json();
+
+        // Handle campaign generation errors
+        if (!campaignResponse.ok) {
+          // Insufficient credits
+          if (campaignResponse.status === 402) {
+            return NextResponse.json({
+              type: 'error',
+              errorType: 'INSUFFICIENT_CREDITS',
+              message: campaignData.error || 'Nepakanka AI kreditų. Reikia 30 kreditų 7 dienų kampanijai.',
+              requiredCredits: 30,
+              currentCredits: campaignData.currentCredits || 0,
+            });
+          }
+
+          // Other errors
+          return NextResponse.json({
+            type: 'error',
+            errorType: 'CAMPAIGN_GENERATION_FAILED',
+            message: campaignData.error || 'Kampanijos generavimas nepavyko. Bandykite dar kartą.',
+          });
+        }
+
+        // Success! Campaign generated
+        const { batch, contentItems, summary } = campaignData;
+        
+        // Construct preview URL
+        const previewUrl = `/dashboard/projects/${projectId}/content-calendar?batch=${batch.id}`;
+
+        return NextResponse.json({
+          type: 'campaign_created',
+          campaignId: batch.id,
+          batchId: batch.id,
+          projectId,
+          previewUrl,
+          summary: {
+            days: 7,
+            posts: summary?.totalPosts || contentItems?.length || 0,
+            images: summary?.imagesGenerated || 0,
+            platforms: ['Instagram', 'Facebook', 'LinkedIn', 'TikTok'],
+          },
+          message: `✅ Sukurta 7 dienų kampanija su ${summary?.totalPosts || 0} įrašais ir ${summary?.imagesGenerated || 0} paveikslėliais!`,
+        });
+
+      } catch (error: any) {
+        console.error('[ChatBridge] Campaign generation error:', error);
+        
+        return NextResponse.json({
+          type: 'error',
+          errorType: 'INTERNAL_ERROR',
+          message: 'Serverio klaida. Bandykite dar kartą arba susisiekite su palaikymu.',
+        }, { status: 500 });
+      }
+    }
+
+    // ==========================================
+    // ROUTE 2: NORMAL CHAT
+    // ==========================================
+    // Pass to existing chat AI endpoint
+    try {
+      const chatResponse = await fetch(
+        `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/ai/generate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': req.headers.get('cookie') || '',
+          },
+          body: JSON.stringify({
+            projectId,
+            type: 'text', // Default to text generation
+            prompt: message,
+            projectContext: {
+              name: project.name,
+              industry: project.industry,
+              offer: project.offer,
+              targetAudience: project.targetAudience,
+              tone: project.tone,
+              website: project.website,
+              language: project.language,
+            },
+          }),
+        }
+      );
+
+      const chatData = await chatResponse.json();
+
+      if (!chatResponse.ok) {
+        return NextResponse.json({
+          type: 'error',
+          errorType: 'CHAT_FAILED',
+          message: chatData.error || 'Klaida bendraujant su AI. Bandykite dar kartą.',
+        });
+      }
+
+      return NextResponse.json({
+        type: 'chat_reply',
+        message: chatData.content || 'AI atsakymas negautas.',
+      });
+
+    } catch (error: any) {
+      console.error('[ChatBridge] Chat error:', error);
+      
+      return NextResponse.json({
+        type: 'error',
+        errorType: 'CHAT_ERROR',
+        message: 'Klaida bendraujant su AI. Bandykite dar kartą.',
+      }, { status: 500 });
+    }
+
+  } catch (error: any) {
+    console.error('[ChatBridge] Unexpected error:', error);
+    
+    return NextResponse.json({
+      type: 'error',
+      errorType: 'UNEXPECTED_ERROR',
+      message: 'Nenumatyta klaida. Bandykite dar kartą.',
+    }, { status: 500 });
+  }
+}

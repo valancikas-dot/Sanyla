@@ -25,8 +25,25 @@ interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  type?: 'text' | 'image' | 'social' | 'campaign';
+  type?: 'text' | 'image' | 'social' | 'campaign' | 'campaign_created' | 'error';
   timestamp: Date;
+  // Campaign-specific data
+  campaignData?: {
+    previewUrl: string;
+    batchId: string;
+    summary: {
+      days: number;
+      posts: number;
+      images: number;
+      platforms: string[];
+    };
+  };
+  // Error-specific data
+  errorData?: {
+    errorType: string;
+    requiredCredits?: number;
+    currentCredits?: number;
+  };
 }
 
 interface Project {
@@ -36,6 +53,7 @@ interface Project {
   offer: string | null;
   targetAudience: string | null;
   tone: string;
+  language: string;
   website: string | null;
 }
 
@@ -131,6 +149,7 @@ Tiesiog parašykite ko jums reikia, pavyzdžiui:
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
@@ -139,53 +158,92 @@ Tiesiog parašykite ko jums reikia, pavyzdžiui:
     setMessages(prev => [...prev, {
       id: thinkingId,
       role: 'assistant',
-      content: '🤔 Generuoju...',
+      content: '🤔 Apdoroju jūsų užklausą...',
       timestamp: new Date(),
     }]);
 
     try {
-      const contentType = detectContentType(input);
-      
-      const res = await fetch('/api/ai/generate', {
+      // Use new bridge endpoint
+      const res = await fetch('/api/chat/handle-message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId,
-          type: contentType,
-          prompt: input,
-          projectContext: {
-            name: project?.name,
-            industry: project?.industry,
-            offer: project?.offer,
-            targetAudience: project?.targetAudience,
-            tone: project?.tone,
-            website: project?.website,
-          },
+          message: currentInput,
+          autoGenerateImages: true,
+          language: project?.language || 'lt',
         }),
       });
 
       const data = await res.json();
 
-      // Remove thinking message and add real response
-      setMessages(prev => {
-        const filtered = prev.filter(m => m.id !== thinkingId);
-        return [...filtered, {
+      // Remove thinking message
+      setMessages(prev => prev.filter(m => m.id !== thinkingId));
+
+      // Handle different response types
+      if (data.type === 'campaign_created') {
+        // Campaign successfully created
+        setMessages(prev => [...prev, {
           id: Date.now().toString(),
           role: 'assistant',
-          content: data.content || data.error || 'Klaida generuojant',
-          type: contentType,
+          content: data.message || '✅ Kampanija sukurta!',
+          type: 'campaign_created',
           timestamp: new Date(),
-        }];
-      });
+          campaignData: {
+            previewUrl: data.previewUrl,
+            batchId: data.batchId,
+            summary: data.summary,
+          },
+        }]);
+      } else if (data.type === 'chat_reply') {
+        // Normal chat reply
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: data.message,
+          type: 'text',
+          timestamp: new Date(),
+        }]);
+      } else if (data.type === 'error') {
+        // Error occurred
+        let errorMessage = data.message || 'Įvyko klaida';
+        
+        // Add specific error handling for insufficient credits
+        if (data.errorType === 'INSUFFICIENT_CREDITS') {
+          errorMessage = `❌ ${data.message}\n\n💰 Turite: ${data.currentCredits || 0} kreditų\n📊 Reikia: ${data.requiredCredits || 30} kreditų\n\n➡️ Įsigykite kreditų billing puslapyje.`;
+        }
+
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: errorMessage,
+          type: 'error',
+          timestamp: new Date(),
+          errorData: {
+            errorType: data.errorType,
+            requiredCredits: data.requiredCredits,
+            currentCredits: data.currentCredits,
+          },
+        }]);
+      } else {
+        // Unknown response
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: data.message || 'Nežinomas atsakymo formatas',
+          timestamp: new Date(),
+        }]);
+      }
 
     } catch (error) {
-      console.error('Error:', error);
+      console.error('[Chat] Error:', error);
       setMessages(prev => {
         const filtered = prev.filter(m => m.id !== thinkingId);
         return [...filtered, {
           id: Date.now().toString(),
           role: 'assistant',
-          content: '❌ Įvyko klaida. Bandykite dar kartą.',
+          content: '❌ Įvyko klaida. Bandykite dar kartą arba susisiekite su palaikymu.',
+          type: 'error',
           timestamp: new Date(),
         }];
       });
@@ -256,13 +314,54 @@ Tiesiog parašykite ko jums reikia, pavyzdžiui:
                   className={`rounded-2xl px-4 py-3 ${
                     message.role === 'user'
                       ? 'bg-blue-500 text-white'
+                      : message.type === 'campaign_created'
+                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200'
+                      : message.type === 'error'
+                      ? 'bg-red-50 border-2 border-red-200'
                       : 'bg-white border shadow-sm'
                   }`}
                 >
                   <div className="whitespace-pre-wrap text-sm">
                     {message.content}
                   </div>
-                  {message.role === 'assistant' && message.id !== 'welcome' && !message.content.includes('Generuoju') && (
+
+                  {/* Campaign Preview Button */}
+                  {message.type === 'campaign_created' && message.campaignData && (
+                    <div className="mt-4 pt-3 border-t border-green-200 space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-3">
+                        <div>📅 {message.campaignData.summary.days} dienų</div>
+                        <div>📝 {message.campaignData.summary.posts} įrašai</div>
+                        <div>🖼️ {message.campaignData.summary.images} paveikslėliai</div>
+                        <div>📱 {message.campaignData.summary.platforms.length} platformos</div>
+                      </div>
+                      <Button
+                        onClick={() => router.push(message.campaignData!.previewUrl)}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Peržiūrėti kampaniją
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Error Actions */}
+                  {message.type === 'error' && message.errorData?.errorType === 'INSUFFICIENT_CREDITS' && (
+                    <div className="mt-4 pt-3 border-t border-red-200">
+                      <Button
+                        onClick={() => router.push('/billing')}
+                        className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                      >
+                        💰 Įsigyti kreditų
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Copy button for normal messages */}
+                  {message.role === 'assistant' && 
+                   message.id !== 'welcome' && 
+                   !message.content.includes('Apdoroju') && 
+                   message.type !== 'campaign_created' &&
+                   message.type !== 'error' && (
                     <div className="mt-2 pt-2 border-t flex gap-2">
                       <Button
                         variant="ghost"
