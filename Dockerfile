@@ -1,8 +1,8 @@
-# Use Node.js 20 Alpine
-FROM node:20-alpine AS base
+# Use Node.js 20 Debian Slim (better Prisma compatibility than Alpine)
+FROM node:20-slim AS base
 
-# Install OpenSSL 1.1 for Prisma (Alpine only has openssl3, need compatibility layer)
-RUN apk add --no-cache openssl1.1-compat
+# Install OpenSSL and other dependencies for Prisma
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm
 RUN npm install -g pnpm@10.27.0
@@ -33,10 +33,10 @@ COPY . .
 RUN pnpm --filter @marketing-autopilot/web build
 
 # Production stage
-FROM node:20-alpine AS production
+FROM node:20-slim AS production
 
-# Install OpenSSL 1.1 for Prisma
-RUN apk add --no-cache openssl1.1-compat
+# Install OpenSSL for Prisma
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g pnpm@10.27.0
 
