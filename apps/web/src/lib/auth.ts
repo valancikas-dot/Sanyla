@@ -7,8 +7,8 @@ import bcrypt from 'bcryptjs';
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
     CredentialsProvider({
       name: 'credentials',
@@ -73,18 +73,26 @@ export const authOptions: AuthOptions = {
       return session;
     },
     async signIn({ user, account }) {
-      console.log('SignIn callback called:', { provider: account?.provider, email: user.email });
+      console.log('=== SignIn callback START ===');
+      console.log('Provider:', account?.provider);
+      console.log('User email:', user.email);
+      console.log('User name:', user.name);
+      console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+      console.log('GOOGLE_CLIENT_ID exists:', !!process.env.GOOGLE_CLIENT_ID);
       
       if (account?.provider === 'google') {
         try {
+          console.log('Attempting to find user in database...');
+          
           // Check if user exists
           let existingUser = await prisma.user.findUnique({
             where: { email: user.email! },
           });
           
-          console.log('Existing user:', existingUser ? 'found' : 'not found');
+          console.log('Existing user found:', !!existingUser);
 
           if (!existingUser) {
+            console.log('Creating new user...');
             // Create user from Google OAuth
             existingUser = await prisma.user.create({
               data: {
@@ -94,17 +102,23 @@ export const authOptions: AuthOptions = {
               },
             });
             
-            console.log('New user created:', existingUser.id);
+            console.log('New user created with ID:', existingUser.id);
+          } else {
+            console.log('User already exists with ID:', existingUser.id);
           }
 
-          // User can sign in without organization - no need to check or create
-          console.log('Google sign in SUCCESS');
+          console.log('=== Google sign in SUCCESS ===');
           return true;
         } catch (error) {
-          console.error('Google sign in error:', error);
+          console.error('=== Google sign in ERROR ===');
+          console.error('Error type:', error?.constructor?.name);
+          console.error('Error message:', (error as any)?.message);
+          console.error('Error stack:', (error as any)?.stack);
           return false;
         }
       }
+      
+      console.log('=== SignIn callback END (non-Google) ===');
       return true;
     },
   },
