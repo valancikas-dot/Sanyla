@@ -6,6 +6,7 @@ import { SchedulerService } from './scheduler.service';
 import { ScheduleProcessor } from './schedule.processor';
 import { ProjectsService } from '../projects/projects.service';
 import { AuditService } from '../common/audit.service';
+import { MetaService } from '../social/providers/meta.service';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { AuditService } from '../common/audit.service';
     }),
   ],
   controllers: [SchedulerController],
-  providers: [SchedulerService, ScheduleProcessor, ProjectsService, AuditService],
+  providers: [SchedulerService, ScheduleProcessor, ProjectsService, AuditService, MetaService],
   exports: [SchedulerService],
 })
 export class SchedulerModule {}

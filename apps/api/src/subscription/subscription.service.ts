@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SubscriptionPlan } from '@prisma/client';
 
 @Injectable()
 export class SubscriptionService {
@@ -92,7 +93,7 @@ export class SubscriptionService {
     const updated = await this.prisma.subscription.update({
       where: { id: subscription.id },
       data: {
-        plan,
+        plan: plan as SubscriptionPlan,
         status: 'ACTIVE',
         maxProjects: limits.maxProjects,
         maxAIImages: limits.maxAIImages,
@@ -114,7 +115,7 @@ export class SubscriptionService {
           amount: limits.price,
           currency: 'EUR',
           status: 'succeeded', // Will be updated by Stripe webhook
-          plan,
+          plan: plan as SubscriptionPlan,
           billingPeriod,
           paidAt: now,
         },

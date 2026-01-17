@@ -105,6 +105,7 @@ exports.CreateScheduleJobSchema = zod_1.z.object({
     scheduledFor: zod_1.z.string().datetime(),
     platform: zod_1.z.string(),
     contentItemId: zod_1.z.string(),
+    socialAccountId: zod_1.z.string().optional(),
 });
 exports.CreateIntegrationSchema = zod_1.z.object({
     type: zod_1.z.string(),

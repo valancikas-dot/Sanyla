@@ -127,11 +127,12 @@ export class SocialService {
         });
       } catch (error) {
         // Update publication with error
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         await this.prisma.publication.update({
           where: { id: publication.id },
           data: {
             status: 'FAILED',
-            error: error.message,
+            error: errorMessage,
           },
         });
         throw error;

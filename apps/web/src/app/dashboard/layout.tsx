@@ -11,9 +11,11 @@ import {
   Users, 
   Settings, 
   LogOut,
-  PlusCircle
+  PlusCircle,
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { isAdminEmail } from '@/lib/admin/isAdmin';
 
 const navItems = [
   { href: '/dashboard', label: 'Pradžia', icon: LayoutDashboard },
@@ -79,6 +81,23 @@ export default function DashboardLayout({
                 </li>
               );
             })}
+            
+            {/* Admin Dashboard Link - Only for allowlisted users */}
+            {isAdminEmail(session?.user?.email) && (
+              <li>
+                <Link
+                  href="/admin"
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                    pathname === '/admin'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25' 
+                      : 'text-slate-300 hover:bg-slate-700/50 hover:text-white border border-purple-500/30'
+                  }`}
+                >
+                  <Shield className="w-5 h-5" />
+                  Admin
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
 

@@ -20,12 +20,31 @@ export class SchedulerService {
 
     const parsed = CreateScheduleJobSchema.parse(data);
 
+    // Get default social account for this project and platform
+    let socialAccountId = parsed.socialAccountId; // Allow explicit override
+    
+    if (!socialAccountId && parsed.platform === 'META') {
+      // Auto-select first active Instagram account for this project
+      const socialAccount = await this.prisma.socialAccount.findFirst({
+        where: {
+          projectId,
+          platform: 'INSTAGRAM',
+          status: 'ACTIVE',
+        },
+      });
+      
+      if (socialAccount) {
+        socialAccountId = socialAccount.id;
+      }
+    }
+
     const job = await this.prisma.scheduleJob.create({
       data: {
         scheduledFor: new Date(parsed.scheduledFor),
         platform: parsed.platform,
         contentItemId: parsed.contentItemId,
         projectId,
+        socialAccountId, // Link to social account
         status: 'SCHEDULED',
       },
     });
@@ -35,7 +54,14 @@ export class SchedulerService {
     await this.scheduleQueue.add(
       'publish',
       { jobId: job.id },
-      { delay: delay > 0 ? delay : 0 }
+      { 
+        delay: delay > 0 ? delay : 0,
+        attempts: 3, // Retry 3 times
+        backoff: {
+          type: 'exponential',
+          delay: 30000, // Start with 30s, then 2m, then 10m
+        },
+      }
     );
 
     await this.auditService.log(userId, 'SCHEDULE_JOB_CREATED', { jobId: job.id, projectId });

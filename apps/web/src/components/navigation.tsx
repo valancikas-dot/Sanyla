@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { LanguageSelector } from '@/lib/i18n/LanguageSelector';
+import { CreditsDisplay } from '@/components/credits-display';
 import Image from 'next/image';
 
 interface NavProps {
@@ -75,7 +76,12 @@ export function MainNav() {
           />
           <h1 className="text-2xl font-bold drop-shadow-md">Sanyla</h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
+          {/* PHASE 1C: Credits Display in Navbar */}
+          <div className="hidden md:block">
+            <CreditsDisplay inline />
+          </div>
+          
           <LanguageSelector />
           <Button variant="secondary" size="sm" onClick={handleLogout}>
             {t('nav.logout')}

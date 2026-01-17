@@ -41,7 +41,7 @@ export class ProjectsService {
       data: {
         ...parsed,
         organizationId: orgId,
-      },
+      } as any,
     });
 
     await this.auditService.log(userId, 'PROJECT_CREATED', { projectId: project.id });

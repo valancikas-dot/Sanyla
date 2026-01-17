@@ -547,14 +547,17 @@ export declare const CreateScheduleJobSchema: z.ZodObject<{
     scheduledFor: z.ZodString;
     platform: z.ZodString;
     contentItemId: z.ZodString;
+    socialAccountId: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     platform?: string;
     scheduledFor?: string;
     contentItemId?: string;
+    socialAccountId?: string;
 }, {
     platform?: string;
     scheduledFor?: string;
     contentItemId?: string;
+    socialAccountId?: string;
 }>;
 export declare const CreateIntegrationSchema: z.ZodObject<{
     type: z.ZodString;

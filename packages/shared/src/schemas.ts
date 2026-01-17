@@ -123,6 +123,7 @@ export const CreateScheduleJobSchema = z.object({
   scheduledFor: z.string().datetime(),
   platform: z.string(),
   contentItemId: z.string(),
+  socialAccountId: z.string().optional(), // Explicit account selection
 });
 
 // Integration schemas

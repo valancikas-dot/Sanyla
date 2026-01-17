@@ -28,7 +28,8 @@ export class DalleService {
       return response.data[0].url!;
     } catch (error) {
       console.error('DALL-E generation error:', error);
-      throw new Error(`Failed to generate image: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to generate image: ${errorMessage}`);
     }
   }
 

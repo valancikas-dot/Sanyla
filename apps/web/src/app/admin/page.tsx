@@ -3,197 +3,251 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Crown, Users, CreditCard, Database, TrendingUp, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Shield, Users, Zap, TrendingUp, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
 
-export default function AdminDashboard() {
+interface AdminMetrics {
+  timestamp: string;
+  users: {
+    total: number;
+    new7d: number;
+    active7d: number;
+  };
+  campaigns: {
+    last7d: number;
+    last30d: number;
+  };
+  posting: {
+    scheduled7d: number;
+    posted7d: number;
+    failed7d: number;
+    successRate7d: string;
+    topFailures30d: Array<{ error: string; count: number }>;
+  };
+  revenue: {
+    purchases30d: number;
+    creditsSold30d: number;
+    rewrites30d: number;
+  };
+  performance: {
+    avgEngagementRate7d: string;
+    underperformingPosts48h: number;
+  };
+}
+
+export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalOrganizations: 0,
-    totalProjects: 0,
-    totalRevenue: 0,
-    activeSubscriptions: 0,
-    aiGenerations: 0,
-  });
+  const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth');
+  const fetchMetrics = async () => {
+    try {
+      setRefreshing(true);
+      setError(null);
+
+      const response = await fetch('/api/admin/metrics');
+      
+      if (response.status === 403) {
+        setError('Unauthorized: Admin access required');
+        setTimeout(() => router.push('/'), 2000);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch metrics');
+      }
+
+      const data = await response.json();
+      setMetrics(data);
+    } catch (err: any) {
+      console.error('Failed to fetch admin metrics:', err);
+      setError(err.message || 'Failed to load metrics');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    // TODO: Check if user is super_admin
-    // if (session?.user && session.user.role !== 'super_admin') {
-    //   router.push('/');
-    // }
-  }, [status, session, router]);
+  };
 
   useEffect(() => {
-    // TODO: Fetch admin stats from API
-    // For now, mock data
-    setStats({
-      totalUsers: 147,
-      totalOrganizations: 89,
-      totalProjects: 234,
-      totalRevenue: 12450,
-      activeSubscriptions: 67,
-      aiGenerations: 1823,
-    });
-  }, []);
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') {
+      router.push('/');
+      return;
+    }
+    fetchMetrics();
+  }, [status]);
 
-  if (status === 'loading') {
+  if (loading || status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin text-gray-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading admin dashboard...</p>
+        </div>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => router.push('/')}>Go Home</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!metrics) return null;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <Crown className="w-8 h-8 text-yellow-400" />
-            <h1 className="text-3xl font-bold text-white">Super Admin Dashboard</h1>
-          </div>
-          <p className="text-purple-100 mt-2">
-            Logged in as: <span className="font-semibold">{session?.user?.email}</span>
-          </p>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Total Users */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-400" />
-              </div>
-              <span className="text-sm text-gray-400">Total</span>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">{stats.totalUsers}</h3>
-            <p className="text-gray-400">Registered Users</p>
-          </div>
-
-          {/* Organizations */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6 text-purple-400" />
-              </div>
-              <span className="text-sm text-gray-400">Total</span>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">{stats.totalOrganizations}</h3>
-            <p className="text-gray-400">Organizations</p>
-          </div>
-
-          {/* Projects */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <Database className="w-6 h-6 text-green-400" />
-              </div>
-              <span className="text-sm text-gray-400">Total</span>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">{stats.totalProjects}</h3>
-            <p className="text-gray-400">Active Projects</p>
-          </div>
-
-          {/* Revenue */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-yellow-400" />
-              </div>
-              <span className="text-sm text-gray-400">MRR</span>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">€{stats.totalRevenue}</h3>
-            <p className="text-gray-400">Monthly Revenue</p>
-          </div>
-
-          {/* Active Subscriptions */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-orange-400" />
-              </div>
-              <span className="text-sm text-gray-400">Paid</span>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">{stats.activeSubscriptions}</h3>
-            <p className="text-gray-400">Active Subscriptions</p>
-          </div>
-
-          {/* AI Generations */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6 text-pink-400" />
-              </div>
-              <span className="text-sm text-gray-400">This Month</span>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">{stats.aiGenerations}</h3>
-            <p className="text-gray-400">AI Generations</p>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
-              View All Users
-            </button>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
-              Manage Subscriptions
-            </button>
-            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
-              View Analytics
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-          <h2 className="text-xl font-bold text-white mb-4">Recent Activity</h2>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      <div className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="w-8 h-8 text-purple-600" />
               <div>
-                <p className="text-white font-medium">New user registered</p>
-                <p className="text-sm text-gray-400">john@example.com</p>
+                <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p className="text-sm text-gray-600">
+                  {session?.user?.email} • Updated: {new Date(metrics.timestamp).toLocaleString()}
+                </p>
               </div>
-              <span className="text-sm text-gray-400">2 minutes ago</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
-              <div>
-                <p className="text-white font-medium">Subscription upgraded</p>
-                <p className="text-sm text-gray-400">FREE → STARTER</p>
-              </div>
-              <span className="text-sm text-gray-400">15 minutes ago</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
-              <div>
-                <p className="text-white font-medium">AI Image generated</p>
-                <p className="text-sm text-gray-400">DALL-E 3 - Project #234</p>
-              </div>
-              <span className="text-sm text-gray-400">1 hour ago</span>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={fetchMetrics} disabled={refreshing}>
+                <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-700 py-6 px-6 mt-8">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-2 text-sm text-gray-400">
-            <span>© 2026 Sanyla. AI Marketing Autopilot.</span>
-            <span className="hidden md:inline">•</span>
-            <span className="text-cyan-400 font-medium">by Vilca</span>
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-600" />
+            Users
+          </h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-gray-900">{metrics.users.total}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-600">New (7d)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">{metrics.users.new7d}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-600">Active (7d)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-purple-600">{metrics.users.active7d}</div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </footer>
+
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Zap className="w-6 h-6 text-yellow-600" />
+            Campaigns
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-600">Last 7 Days</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-yellow-600">{metrics.campaigns.last7d}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-600">Last 30 Days</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-yellow-600">{metrics.campaigns.last30d}</div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <TrendingUp className="w-6 h-6 text-green-600" />
+            Posting (7d)
+          </h2>
+          <div className="grid md:grid-cols-4 gap-4 mb-4">
+            <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-gray-600">Scheduled</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-blue-600">{metrics.posting.scheduled7d}</div></CardContent></Card>
+            <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-gray-600">Posted</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-green-600">{metrics.posting.posted7d}</div></CardContent></Card>
+            <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-gray-600">Failed</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-red-600">{metrics.posting.failed7d}</div></CardContent></Card>
+            <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-purple-600">{metrics.posting.successRate7d}</div></CardContent></Card>
+          </div>
+          {metrics.posting.topFailures30d.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-sm font-medium">Top Failures (30d)</CardTitle></CardHeader>
+              <CardContent>
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50"><tr><th className="px-4 py-2 text-left font-semibold text-gray-700">Error</th><th className="px-4 py-2 text-right font-semibold text-gray-700">Count</th></tr></thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {metrics.posting.topFailures30d.map((f, i) => (
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-gray-900 font-mono text-xs max-w-md truncate">{f.error}</td>
+                        <td className="px-4 py-2 text-right font-semibold text-gray-900">{f.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <TrendingUp className="w-6 h-6 text-green-600" />
+            Revenue (30d)
+          </h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-gray-600">Purchases</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-green-600">{metrics.revenue.purchases30d}</div></CardContent></Card>
+            <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-gray-600">Credits Sold</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-purple-600">{metrics.revenue.creditsSold30d}</div></CardContent></Card>
+            <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-gray-600">Rewrites</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-blue-600">{metrics.revenue.rewrites30d}</div></CardContent></Card>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <AlertCircle className="w-6 h-6 text-orange-600" />
+            Performance
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-gray-600">Avg Engagement (7d)</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-blue-600">{metrics.performance.avgEngagementRate7d}</div></CardContent></Card>
+            <Card><CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-gray-600">Underperforming (48h)</CardTitle></CardHeader><CardContent><div className="text-3xl font-bold text-orange-600">{metrics.performance.underperformingPosts48h}</div></CardContent></Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
