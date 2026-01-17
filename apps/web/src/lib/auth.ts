@@ -79,7 +79,7 @@ export const authOptions: AuthOptions = {
         try {
           // Check if user exists
           let existingUser = await prisma.user.findUnique({
-            email: user.email!,
+            where: { email: user.email! },
           });
           
           console.log('Existing user:', existingUser ? 'found' : 'not found');
@@ -87,9 +87,11 @@ export const authOptions: AuthOptions = {
           if (!existingUser) {
             // Create user from Google OAuth
             existingUser = await prisma.user.create({
-              email: user.email!,
-              name: user.name || user.email!.split('@')[0],
-              image: user.image || undefined,
+              data: {
+                email: user.email!,
+                name: user.name || user.email!.split('@')[0],
+                image: user.image || undefined,
+              },
             });
             
             console.log('New user created:', existingUser.id);
@@ -114,17 +116,21 @@ export const authOptions: AuthOptions = {
               
               // Create default organization
               const org = await prisma.organization.create({
-                name: `${existingUser.name}'s Organization`,
-                slug: `${existingUser.id}-org`,
+                data: {
+                  name: `${existingUser.name}'s Organization`,
+                  slug: `${existingUser.id}-org`,
+                },
               });
               
               console.log('Organization created:', org.id);
 
               // Create membership
               await prisma.membership.create({
-                userId: existingUser.id,
-                organizationId: org.id,
-                role: 'owner',
+                data: {
+                  userId: existingUser.id,
+                  organizationId: org.id,
+                  role: 'owner',
+                },
               });
               
               console.log('Membership created');
