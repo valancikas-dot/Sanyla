@@ -10,7 +10,8 @@ cmds = [
 [phases.build]
 cmds = [
   "cd apps/web && npx prisma generate --schema prisma/schema.prisma",
-  "cd apps/web && npx prisma migrate deploy --schema prisma/schema.prisma",
+  "echo '=== Running Prisma migrations (schema: apps/web/prisma/schema.prisma) ===' && cd apps/web && npx prisma migrate deploy --schema prisma/schema.prisma || (echo '❌ MIGRATION FAILED!' && exit 1)",
+  "echo '=== Migration deploy complete ===' ",
   "pnpm run build:web"
 ]
 
