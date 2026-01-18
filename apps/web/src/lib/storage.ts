@@ -3,6 +3,25 @@
  * This wraps the API storage service for use in Next.js routes
  */
 
+/**
+ * Get absolute URL for internal API calls
+ * Required for server-side fetch (Railway/Node.js)
+ */
+function getAbsoluteUrl(path: string): string {
+  // In browser, use relative URLs
+  if (typeof window !== 'undefined') {
+    return path;
+  }
+  
+  // On server, construct absolute URL
+  const baseUrl = 
+    process.env.NEXT_PUBLIC_APP_URL || 
+    process.env.NEXTAUTH_URL || 
+    'http://localhost:3000';
+  
+  return new URL(path, baseUrl).toString();
+}
+
 interface StorageUploadResult {
   url: string;
   key: string;
@@ -21,7 +40,8 @@ export async function uploadImageToStorage(
 ): Promise<StorageUploadResult> {
   try {
     // Call internal API endpoint that uses StorageService
-    const response = await fetch('/api/storage/upload-from-url', {
+    const apiUrl = getAbsoluteUrl('/api/storage/upload-from-url');
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ imageUrl, path }),
@@ -61,7 +81,8 @@ export async function uploadBufferToStorage(
   path: string,
   contentType: string = 'image/png'
 ): Promise<StorageUploadResult> {
-  const response = await fetch('/api/storage/upload-buffer', {
+  const apiUrl = getAbsoluteUrl('/api/storage/upload-buffer');
+  const response = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -88,7 +109,8 @@ export async function getSignedUrl(
   key: string,
   expiresIn: number = 3600
 ): Promise<string> {
-  const response = await fetch('/api/storage/signed-url', {
+  const apiUrl = getAbsoluteUrl('/api/storage/signed-url');
+  const response = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ key, expiresIn }),
@@ -107,7 +129,8 @@ export async function getSignedUrl(
  * @param key - R2 object key
  */
 export async function deleteFromStorage(key: string): Promise<void> {
-  const response = await fetch('/api/storage/delete', {
+  const apiUrl = getAbsoluteUrl('/api/storage/delete');
+  const response = await fetch(apiUrl, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ key }),
