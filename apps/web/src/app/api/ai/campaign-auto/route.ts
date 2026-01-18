@@ -277,10 +277,25 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Campaign auto-generate error:', error);
+    console.error('[CampaignAuto] Error:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+      stack: error.stack,
+    });
+    
+    // Check for Prisma-specific errors
+    if (error.code === 'P2022') {
+      return NextResponse.json({
+        error: 'Database configuration error. Please contact support.',
+        userMessage: 'Atsiprašome, įvyko sistemos klaida. Bandykite dar kartą arba susisiekite su palaikymu.'
+      }, { status: 500 });
+    }
+    
+    // Generic error response (don't expose internal details)
     return NextResponse.json({
-      error: error.message || 'Campaign generation failed',
-      details: error.toString()
+      error: 'Campaign generation failed',
+      userMessage: 'Kampanijos generavimas nepavyko. Bandykite dar kartą.'
     }, { status: 500 });
   }
 }
