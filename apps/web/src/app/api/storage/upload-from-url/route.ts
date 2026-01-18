@@ -15,7 +15,13 @@ function getR2Client() {
     if (!endpoint) missing.push('R2_ENDPOINT');
     if (!accessKeyId) missing.push('R2_ACCESS_KEY_ID');
     if (!secretAccessKey) missing.push('R2_SECRET_ACCESS_KEY');
-    throw new Error(`R2 credentials not configured. Missing: ${missing.join(', ')}`);
+    
+    // TODO PRODUCTION: Configure R2 credentials in Railway env vars
+    // See RAILWAY_R2_SETUP.md for setup instructions
+    console.warn('⚠️ R2 credentials not configured. Missing:', missing.join(', '));
+    console.warn('⚠️ Images will use temporary DALL-E URLs (expire in 1h)');
+    
+    return null; // Return null instead of throwing
   }
 
   // Ensure endpoint has https://
@@ -65,6 +71,19 @@ export async function POST(req: NextRequest) {
     // Upload to R2
     console.log(`📤 Uploading to R2: ${path}`);
     const s3Client = getR2Client();
+    
+    // If R2 not configured, return DALL-E URL as fallback
+    if (!s3Client) {
+      console.warn('⚠️ R2 not configured. Returning temporary DALL-E URL');
+      return NextResponse.json({
+        success: true,
+        url: imageUrl, // Return original DALL-E URL
+        key: path,
+        temporary: true, // Mark as temporary
+        warning: 'Using temporary URL. Configure R2 credentials for permanent storage.',
+      });
+    }
+    
     const bucketName = process.env.R2_BUCKET_NAME || 'sanyla-assets';
 
     const putCommand = new PutObjectCommand({
@@ -92,7 +111,16 @@ export async function POST(req: NextRequest) {
         statusCode: s3Error.$metadata?.httpStatusCode,
         response: s3Error.$response,
       });
-      throw new Error(`R2 upload failed: ${s3Error.message} (${s3Error.name})`);
+      
+      // Fallback to DALL-E URL instead of throwing
+      console.warn('⚠️ R2 upload failed. Returning temporary DALL-E URL');
+      return NextResponse.json({
+        success: true,
+        url: imageUrl, // Fallback to original URL
+        key: path,
+        temporary: true,
+        warning: `R2 upload failed: ${s3Error.message}`,
+      });
     }
 
     // Build public URL

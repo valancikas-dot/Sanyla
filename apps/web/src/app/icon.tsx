@@ -1,0 +1,13 @@
+export default function Icon() {
+  return new Response(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <rect width="100" height="100" fill="#6366f1"/>
+      <text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle" font-family="system-ui">S</text>
+    </svg>`,
+    {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+      },
+    }
+  );
+}

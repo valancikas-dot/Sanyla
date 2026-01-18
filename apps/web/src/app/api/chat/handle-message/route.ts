@@ -13,6 +13,19 @@ import { authOptions } from '@/lib/auth';
 import { detectIntent, getIntentName } from '@/lib/chat/intent-detection';
 import prisma from '@/lib/prisma';
 
+/**
+ * Get absolute URL for server-side fetch
+ */
+function getAbsoluteUrl(path: string): string {
+  const baseUrl = 
+    process.env.NEXT_PUBLIC_APP_URL || 
+    process.env.NEXTAUTH_URL || 
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+    'http://localhost:3000';
+  
+  return new URL(path, baseUrl).toString();
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -106,7 +119,7 @@ export async function POST(req: NextRequest) {
       try {
         // Call campaign-auto endpoint with scheduling
         const campaignResponse = await fetch(
-          `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/ai/campaign-auto`,
+          getAbsoluteUrl('/api/ai/campaign-auto'),
           {
             method: 'POST',
             headers: {
@@ -211,7 +224,7 @@ export async function POST(req: NextRequest) {
     // Pass to existing chat AI endpoint
     try {
       const chatResponse = await fetch(
-        `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/ai/generate`,
+        getAbsoluteUrl('/api/ai/generate'),
         {
           method: 'POST',
           headers: {
