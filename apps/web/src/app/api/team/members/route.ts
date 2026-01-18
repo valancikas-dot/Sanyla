@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
+      console.log('[TeamMembers] Unauthorized - no session');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
     );
     
     if (userResult.rows.length === 0) {
+      console.log('[TeamMembers] User not found in database', { email: session.user.email });
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
     
@@ -48,6 +50,7 @@ export async function GET(req: NextRequest) {
     );
     
     if (membershipResult.rows.length === 0) {
+      console.log('[TeamMembers] No organization membership found', { userId });
       return NextResponse.json({ members: [], invitations: [] });
     }
     
@@ -90,7 +93,13 @@ export async function GET(req: NextRequest) {
       }))
     });
   } catch (error) {
-    console.error('Get team members error:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error('[TeamMembers] Error:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json({ 
+      error: 'Server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

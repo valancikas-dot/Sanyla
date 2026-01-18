@@ -17,7 +17,12 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.log('[ChatBridge] Unauthorized - no session');
+      return NextResponse.json({ 
+        type: 'error',
+        errorType: 'UNAUTHORIZED',
+        error: 'Unauthorized' 
+      }, { status: 401 });
     }
 
     const body = await req.json();
@@ -32,10 +37,12 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!projectId || !message) {
-      return NextResponse.json(
-        { error: 'Missing projectId or message' }, 
-        { status: 400 }
-      );
+      console.log('[ChatBridge] Bad request - missing projectId or message');
+      return NextResponse.json({
+        type: 'error',
+        errorType: 'BAD_REQUEST',
+        error: 'Missing projectId or message' 
+      }, { status: 400 });
     }
 
     // Verify user has access to project
@@ -65,10 +72,12 @@ export async function POST(req: NextRequest) {
     });
 
     if (!project) {
-      return NextResponse.json(
-        { error: 'Project not found or access denied' }, 
-        { status: 404 }
-      );
+      console.log('[ChatBridge] Project not found or access denied', { projectId, userEmail: session.user.email });
+      return NextResponse.json({
+        type: 'error',
+        errorType: 'NOT_FOUND',
+        error: 'Project not found or access denied' 
+      }, { status: 404 });
     }
 
     // Detect intent
@@ -180,12 +189,18 @@ export async function POST(req: NextRequest) {
         });
 
       } catch (error: any) {
-        console.error('[ChatBridge] Campaign generation error:', error);
+        console.error('[ChatBridge] Campaign generation error:', {
+          error: error.message,
+          stack: error.stack,
+          projectId,
+          hasStartAt: !!startAt,
+        });
         
         return NextResponse.json({
           type: 'error',
           errorType: 'INTERNAL_ERROR',
           message: 'Serverio klaida. Bandykite dar kartą arba susisiekite su palaikymu.',
+          error: error.message,
         }, { status: 500 });
       }
     }
@@ -236,22 +251,32 @@ export async function POST(req: NextRequest) {
       });
 
     } catch (error: any) {
-      console.error('[ChatBridge] Chat error:', error);
+      console.error('[ChatBridge] Chat error:', {
+        error: error.message,
+        stack: error.stack,
+        projectId,
+      });
       
       return NextResponse.json({
         type: 'error',
         errorType: 'CHAT_ERROR',
         message: 'Klaida bendraujant su AI. Bandykite dar kartą.',
+        error: error.message,
       }, { status: 500 });
     }
 
   } catch (error: any) {
-    console.error('[ChatBridge] Unexpected error:', error);
+    console.error('[ChatBridge] Unexpected error:', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     
     return NextResponse.json({
       type: 'error',
       errorType: 'UNEXPECTED_ERROR',
       message: 'Nenumatyta klaida. Bandykite dar kartą.',
+      error: error.message,
     }, { status: 500 });
   }
 }

@@ -14,7 +14,13 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     // 1. Check admin access
-    await requireAdmin();
+    const adminSession = await requireAdmin();
+    if (!adminSession) {
+      return NextResponse.json(
+        { error: 'Admin access required' }, 
+        { status: 403 }
+      );
+    }
 
     // 2. Compute metrics in parallel
     const now = new Date();

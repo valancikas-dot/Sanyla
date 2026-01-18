@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { 
@@ -15,7 +15,6 @@ import {
   Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { isAdminEmail } from '@/lib/admin/isAdmin';
 
 const navItems = [
   { href: '/dashboard', label: 'Pradžia', icon: LayoutDashboard },
@@ -32,6 +31,23 @@ export default function DashboardLayout({
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth');
+    }
+  }, [status, router]);
+
+  // Fetch admin status from API (client-safe)
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetch('/api/admin/check-access')
+        .then(res => res.json())
+        .then(data => setIsAdmin(data.isAdmin || false))
+        .catch(() => setIsAdmin(false)); // Safe default on error
+    }
+  }, [status]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -83,7 +99,7 @@ export default function DashboardLayout({
             })}
             
             {/* Admin Dashboard Link - Only for allowlisted users */}
-            {isAdminEmail(session?.user?.email) && (
+            {isAdmin && (
               <li>
                 <Link
                   href="/admin"
