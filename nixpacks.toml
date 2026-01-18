@@ -8,7 +8,10 @@ cmds = [
 ]
 
 [phases.build]
-cmds = ["pnpm run build:web"]
+cmds = [
+  "cd apps/web && npx prisma migrate deploy",
+  "pnpm run build:web"
+]
 
 [start]
 cmd = "pnpm run start:web"
