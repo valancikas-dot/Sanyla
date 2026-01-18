@@ -11,16 +11,28 @@ function getR2Client() {
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
 
   if (!endpoint || !accessKeyId || !secretAccessKey) {
-    throw new Error('R2 credentials not configured');
+    const missing = [];
+    if (!endpoint) missing.push('R2_ENDPOINT');
+    if (!accessKeyId) missing.push('R2_ACCESS_KEY_ID');
+    if (!secretAccessKey) missing.push('R2_SECRET_ACCESS_KEY');
+    throw new Error(`R2 credentials not configured. Missing: ${missing.join(', ')}`);
   }
 
+  // Ensure endpoint has https://
+  const normalizedEndpoint = endpoint.startsWith('http') 
+    ? endpoint 
+    : `https://${endpoint}`;
+
+  console.log(`🔧 R2 Config: endpoint=${normalizedEndpoint}, region=auto, forcePathStyle=true`);
+
   return new S3Client({
-    region: 'auto',
-    endpoint: endpoint,
+    region: 'auto', // Cloudflare R2 requires 'auto'
+    endpoint: normalizedEndpoint,
     credentials: {
       accessKeyId,
       secretAccessKey,
     },
+    forcePathStyle: true, // CRITICAL: Required for R2 compatibility
   });
 }
 
@@ -55,14 +67,33 @@ export async function POST(req: NextRequest) {
     const s3Client = getR2Client();
     const bucketName = process.env.R2_BUCKET_NAME || 'sanyla-assets';
 
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: bucketName,
-        Key: path,
-        Body: buffer,
-        ContentType: contentType,
-      })
-    );
+    const putCommand = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: path,
+      Body: buffer,
+      ContentType: contentType,
+    });
+
+    console.log(`📦 S3 Command: Bucket=${bucketName}, Key=${path}, Size=${buffer.length}`);
+    
+    try {
+      const s3Response = await s3Client.send(putCommand);
+      console.log(`✅ S3 Response:`, {
+        statusCode: s3Response.$metadata.httpStatusCode,
+        requestId: s3Response.$metadata.requestId,
+        etag: s3Response.ETag,
+      });
+    } catch (s3Error: any) {
+      console.error('❌ S3 SDK Error:', {
+        name: s3Error.name,
+        message: s3Error.message,
+        code: s3Error.Code || s3Error.$metadata?.httpStatusCode,
+        requestId: s3Error.$metadata?.requestId,
+        statusCode: s3Error.$metadata?.httpStatusCode,
+        response: s3Error.$response,
+      });
+      throw new Error(`R2 upload failed: ${s3Error.message} (${s3Error.name})`);
+    }
 
     // Build public URL
     const publicDomain = process.env.R2_PUBLIC_DOMAIN || `${bucketName}.r2.dev`;
@@ -78,11 +109,19 @@ export async function POST(req: NextRequest) {
       contentType,
     });
   } catch (error: any) {
-    console.error('Storage upload error:', error);
+    console.error('❌ Storage upload error:', {
+      message: error.message,
+      name: error.name,
+      code: error.Code || error.code,
+      stack: error.stack,
+      requestId: error.$metadata?.requestId,
+    });
+    
     return NextResponse.json(
       {
         error: error.message || 'Upload failed',
-        details: error.toString(),
+        type: error.name,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
       { status: 500 }
     );
