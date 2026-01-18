@@ -25,7 +25,10 @@ export async function POST(req: NextRequest) {
       projectId, 
       message, 
       autoGenerateImages = true,
-      language 
+      language,
+      // Scheduling parameters
+      startAt,
+      timezone = 'Europe/Vilnius'
     } = body;
 
     if (!projectId || !message) {
@@ -82,8 +85,17 @@ export async function POST(req: NextRequest) {
     // ROUTE 1: CAMPAIGN GENERATION
     // ==========================================
     if (intent === 'GENERATE_7_DAY_CAMPAIGN') {
+      // If no startAt provided, ask user to schedule
+      if (!startAt) {
+        return NextResponse.json({
+          type: 'needs_schedule',
+          message: 'Planuokite kampanijos publikavimo laiką',
+          projectId,
+        });
+      }
+
       try {
-        // Call campaign-auto endpoint
+        // Call campaign-auto endpoint with scheduling
         const campaignResponse = await fetch(
           `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/ai/campaign-auto`,
           {
@@ -97,6 +109,8 @@ export async function POST(req: NextRequest) {
               prompt: message,
               autoGenerateImages,
               language: language || project.language || 'lt',
+              startAt,
+              timezone,
             }),
           }
         );
@@ -105,6 +119,15 @@ export async function POST(req: NextRequest) {
 
         // Handle campaign generation errors
         if (!campaignResponse.ok) {
+          // Invalid date
+          if (campaignResponse.status === 400) {
+            return NextResponse.json({
+              type: 'error',
+              errorType: 'INVALID_DATE',
+              message: campaignData.error || 'Neteisingas laikas. Pasirinkite teisingą datą ir laiką.',
+            });
+          }
+
           // Insufficient credits
           if (campaignResponse.status === 402) {
             return NextResponse.json({
@@ -130,6 +153,16 @@ export async function POST(req: NextRequest) {
         // Construct preview URL
         const previewUrl = `/dashboard/projects/${projectId}/content-calendar?batch=${batch.id}`;
 
+        // Format start date for display
+        const startDate = new Date(startAt);
+        const formattedDate = startDate.toLocaleDateString('lt-LT', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
         return NextResponse.json({
           type: 'campaign_created',
           campaignId: batch.id,
@@ -141,8 +174,9 @@ export async function POST(req: NextRequest) {
             posts: summary?.totalPosts || contentItems?.length || 0,
             images: summary?.imagesGenerated || 0,
             platforms: ['Instagram', 'Facebook', 'LinkedIn', 'TikTok'],
+            startAt: formattedDate,
           },
-          message: `✅ Sukurta 7 dienų kampanija su ${summary?.totalPosts || 0} įrašais ir ${summary?.imagesGenerated || 0} paveikslėliais!`,
+          message: `✅ Sukurta 7 dienų kampanija su ${summary?.totalPosts || 0} įrašais ir ${summary?.imagesGenerated || 0} paveikslėliais!\n\n📅 Pradžia: ${formattedDate}`,
         });
 
       } catch (error: any) {

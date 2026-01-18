@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import OpenAI from 'openai';
 import { PrismaClient } from '@prisma/client';
 import { uploadImageToStorage } from '@/lib/storage';
+import { parseAndValidateDate, addDays } from '@/lib/utils/date-validation';
 
 const prisma = new PrismaClient();
 
@@ -76,10 +77,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { projectId, prompt, autoGenerateImages = true } = await req.json();
+    const { 
+      projectId, 
+      prompt, 
+      autoGenerateImages = true,
+      startAt,
+      timezone = 'Europe/Vilnius'
+    } = await req.json();
 
     if (!projectId) {
       return NextResponse.json({ error: 'Missing projectId' }, { status: 400 });
+    }
+
+    // Validate startAt if provided
+    if (!startAt) {
+      return NextResponse.json({ 
+        error: 'Missing startAt: Please select a start date and time for the campaign' 
+      }, { status: 400 });
+    }
+
+    let campaignStartDate: Date;
+    try {
+      campaignStartDate = parseAndValidateDate(startAt, 'startAt');
+      
+      // Validate it's a future date
+      if (campaignStartDate < new Date()) {
+        return NextResponse.json({ 
+          error: 'Invalid startAt: Start date must be in the future' 
+        }, { status: 400 });
+      }
+    } catch (error: any) {
+      return NextResponse.json({ 
+        error: error.message || 'Invalid startAt date format' 
+      }, { status: 400 });
     }
 
     // ==========================================
@@ -167,9 +197,15 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // Step 5: Save each day as ContentItem + ScheduleJobs
-    console.log('💾 Saving to database...');
-    const savedItems = await saveCampaignToDatabase(daysWithImages, project.id, batch.id);
+    // Step 5: Save each day as ContentItem + ScheduleJobs (with validated start date)
+    console.log('💾 Saving to database with schedule starting:', campaignStartDate.toISOString());
+    const savedItems = await saveCampaignToDatabase(
+      daysWithImages, 
+      project.id, 
+      batch.id, 
+      campaignStartDate,
+      timezone
+    );
 
     // ==========================================
     // PHASE 1B: DEDUCT CREDITS & CREATE RECORDS
@@ -447,14 +483,17 @@ async function generateSingleImage(openai: OpenAI, prompt: string): Promise<stri
 async function saveCampaignToDatabase(
   days: DayContent[],
   projectId: string,
-  batchId: string
+  batchId: string,
+  campaignStartDate: Date,
+  timezone: string = 'Europe/Vilnius'
 ) {
   const savedItems = [];
 
   for (const day of days) {
-    // Create base date for scheduling (starting tomorrow)
-    const scheduledDate = new Date();
-    scheduledDate.setDate(scheduledDate.getDate() + day.day);
+    // Calculate scheduled date: startDate + day offset
+    const scheduledDate = addDays(campaignStartDate, day.day);
+    
+    console.log(`📅 Day ${day.day} scheduled for: ${scheduledDate.toISOString()}`);
     
     // Instagram/Reels
     const instagramItem = await prisma.contentItem.create({
@@ -473,7 +512,8 @@ async function saveCampaignToDatabase(
         metadata: {
           day: day.day,
           theme: day.theme,
-          bestTime: day.bestTime,
+          scheduledDate: scheduledDate.toISOString(),
+          timezone,
         },
         projectId,
         batchId,
@@ -493,10 +533,10 @@ async function saveCampaignToDatabase(
       });
     }
 
-    // Create schedule job for Instagram
+    // Create schedule job for Instagram with VALIDATED date
     await prisma.scheduleJob.create({
       data: {
-        scheduledFor: new Date(`${day.date} ${day.bestTime}`),
+        scheduledFor: scheduledDate, // Use validated Date object
         platform: 'META',
         status: 'DRAFT',
         contentItemId: instagramItem.id,
@@ -521,7 +561,12 @@ async function saveCampaignToDatabase(
           image: day.facebook.visual, // PERMANENT R2 URL
           imageKey: day.facebook.visualKey,
         },
-        metadata: { day: day.day, theme: day.theme },
+        metadata: { 
+          day: day.day, 
+          theme: day.theme,
+          scheduledDate: scheduledDate.toISOString(),
+          timezone,
+        },
         projectId,
         batchId,
       }
@@ -542,7 +587,7 @@ async function saveCampaignToDatabase(
 
     await prisma.scheduleJob.create({
       data: {
-        scheduledFor: new Date(`${day.date} ${day.bestTime}`),
+        scheduledFor: scheduledDate, // Use validated Date object
         platform: 'META',
         status: 'DRAFT',
         contentItemId: facebookItem.id,
@@ -567,7 +612,12 @@ async function saveCampaignToDatabase(
           image: day.linkedin.visual, // PERMANENT R2 URL
           imageKey: day.linkedin.visualKey,
         },
-        metadata: { day: day.day, theme: day.theme },
+        metadata: { 
+          day: day.day, 
+          theme: day.theme,
+          scheduledDate: scheduledDate.toISOString(),
+          timezone,
+        },
         projectId,
         batchId,
       }
@@ -588,7 +638,7 @@ async function saveCampaignToDatabase(
 
     await prisma.scheduleJob.create({
       data: {
-        scheduledFor: new Date(`${day.date} ${day.bestTime}`),
+        scheduledFor: scheduledDate, // Use validated Date object
         platform: 'LINKEDIN',
         status: 'DRAFT',
         contentItemId: linkedinItem.id,

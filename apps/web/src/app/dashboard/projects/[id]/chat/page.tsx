@@ -20,6 +20,7 @@ import {
   Share2,
   Calendar
 } from 'lucide-react';
+import { ScheduleModal } from '@/components/campaign/ScheduleModal';
 
 interface Message {
   id: string;
@@ -69,6 +70,8 @@ export default function ChatbotPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [pendingCampaignMessage, setPendingCampaignMessage] = useState<string>('');
 
   useEffect(() => {
     fetchProject();
@@ -181,7 +184,18 @@ Tiesiog parašykite ko jums reikia, pavyzdžiui:
       setMessages(prev => prev.filter(m => m.id !== thinkingId));
 
       // Handle different response types
-      if (data.type === 'campaign_created') {
+      if (data.type === 'needs_schedule') {
+        // Campaign needs scheduling - show modal
+        setPendingCampaignMessage(currentInput);
+        setShowScheduleModal(true);
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: '📅 Prašome pasirinkti kada norite pradėti kampaniją:',
+          type: 'text',
+          timestamp: new Date(),
+        }]);
+      } else if (data.type === 'campaign_created') {
         // Campaign successfully created
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
@@ -256,6 +270,90 @@ Tiesiog parašykite ko jums reikia, pavyzdžiui:
     await navigator.clipboard.writeText(content);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleScheduleConfirm = async (startAt: string, timezone: string) => {
+    setShowScheduleModal(false);
+    setIsLoading(true);
+
+    // Add thinking message
+    const thinkingId = 'thinking-schedule-' + Date.now();
+    setMessages(prev => [...prev, {
+      id: thinkingId,
+      role: 'assistant',
+      content: '🚀 Generuoju kampaniją su jūsų pasirinktu grafiku...',
+      timestamp: new Date(),
+    }]);
+
+    try {
+      const res = await fetch('/api/chat/handle-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          message: pendingCampaignMessage,
+          autoGenerateImages: true,
+          language: project?.language || 'lt',
+          startAt,
+          timezone,
+        }),
+      });
+
+      const data = await res.json();
+
+      // Remove thinking message
+      setMessages(prev => prev.filter(m => m.id !== thinkingId));
+
+      // Handle response
+      if (data.type === 'campaign_created') {
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: data.message || '✅ Kampanija sukurta!',
+          type: 'campaign_created',
+          timestamp: new Date(),
+          campaignData: {
+            previewUrl: data.previewUrl,
+            batchId: data.batchId,
+            summary: data.summary,
+          },
+        }]);
+      } else if (data.type === 'error') {
+        let errorMessage = data.message || 'Įvyko klaida';
+        
+        if (data.errorType === 'INSUFFICIENT_CREDITS') {
+          errorMessage = `❌ ${data.message}\n\n💰 Turite: ${data.currentCredits || 0} kreditų\n📊 Reikia: ${data.requiredCredits || 30} kreditų\n\n➡️ Įsigykite kreditų billing puslapyje.`;
+        }
+
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: errorMessage,
+          type: 'error',
+          timestamp: new Date(),
+          errorData: {
+            errorType: data.errorType,
+            requiredCredits: data.requiredCredits,
+            currentCredits: data.currentCredits,
+          },
+        }]);
+      }
+    } catch (error) {
+      console.error('[Schedule] Error:', error);
+      setMessages(prev => {
+        const filtered = prev.filter(m => m.id !== thinkingId);
+        return [...filtered, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: '❌ Įvyko klaida generuojant kampaniją. Bandykite dar kartą.',
+          type: 'error',
+          timestamp: new Date(),
+        }];
+      });
+    } finally {
+      setIsLoading(false);
+      setPendingCampaignMessage('');
+    }
   };
 
   const quickActions = [
@@ -438,6 +536,17 @@ Tiesiog parašykite ko jums reikia, pavyzdžiui:
           )}
         </Button>
       </div>
+
+      {/* Schedule Modal */}
+      <ScheduleModal
+        open={showScheduleModal}
+        onClose={() => {
+          setShowScheduleModal(false);
+          setPendingCampaignMessage('');
+        }}
+        onSchedule={handleScheduleConfirm}
+        isLoading={isLoading}
+      />
     </div>
   );
 }
