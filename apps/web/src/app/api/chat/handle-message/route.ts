@@ -174,10 +174,10 @@ export async function POST(req: NextRequest) {
         }
 
         // Success! Campaign generated
-        const { batch, contentItems, summary } = campaignData;
+        const { batchId, campaignId, items, totalDays, creditsRemaining } = campaignData;
         
         // Construct preview URL
-        const previewUrl = `/dashboard/projects/${projectId}/content-calendar?batch=${batch.id}`;
+        const previewUrl = `/dashboard/projects/${projectId}/content-calendar?batch=${batchId}`;
 
         // Format start date for display
         const startDate = new Date(startAt);
@@ -191,18 +191,18 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
           type: 'campaign_created',
-          campaignId: batch.id,
-          batchId: batch.id,
+          campaignId: campaignId,
+          batchId: batchId,
           projectId,
           previewUrl,
           summary: {
-            days: 7,
-            posts: summary?.totalPosts || contentItems?.length || 0,
-            images: summary?.imagesGenerated || 0,
+            days: totalDays || 7,
+            posts: items?.length || 0,
+            images: totalDays || 0,
             platforms: ['Instagram', 'Facebook', 'LinkedIn', 'TikTok'],
             startAt: formattedDate,
           },
-          message: `✅ Sukurta 7 dienų kampanija su ${summary?.totalPosts || 0} įrašais ir ${summary?.imagesGenerated || 0} paveikslėliais!\n\n📅 Pradžia: ${formattedDate}`,
+          message: `✅ Sukurta ${totalDays || 7} dienų kampanija!\n\n📅 Pradžia: ${formattedDate}`,
         });
 
       } catch (error: any) {
