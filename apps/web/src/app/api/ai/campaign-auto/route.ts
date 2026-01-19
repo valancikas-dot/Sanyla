@@ -685,7 +685,7 @@ async function saveCampaignToDatabase(
 
       await prisma.scheduleJob.create({
         data: {
-          scheduledFor: new Date(`${day.date} ${day.bestTime}`),
+          scheduledFor: scheduledDate, // Use validated Date object (NOT day.date!)
           platform: 'TIKTOK',
           status: 'DRAFT',
           contentItemId: tiktokItem.id,
