@@ -117,25 +117,29 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        // Call campaign-auto endpoint with scheduling
-        const campaignResponse = await fetch(
-          getAbsoluteUrl('/api/ai/campaign-auto'),
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Cookie': req.headers.get('cookie') || '', // Forward session
-            },
-            body: JSON.stringify({
-              projectId,
-              prompt: message,
-              autoGenerateImages,
-              language: language || project.language || 'lt',
-              startAt,
-              timezone,
-            }),
-          }
-        );
+        // Direct internal API call (bypass fetch for server-side)
+        // Import the campaign-auto handler
+        const campaignAutoModule = await import('@/app/api/ai/campaign-auto/route');
+        
+        // Create a new Request object with campaign parameters
+        const campaignRequest = new Request(getAbsoluteUrl('/api/ai/campaign-auto'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': req.headers.get('cookie') || '',
+          },
+          body: JSON.stringify({
+            projectId,
+            prompt: message,
+            autoGenerateImages,
+            language: language || project.language || 'lt',
+            startAt,
+            timezone,
+          }),
+        });
+
+        // Call the handler directly
+        const campaignResponse = await campaignAutoModule.POST(campaignRequest as any);
 
         const campaignData = await campaignResponse.json();
 
@@ -221,33 +225,33 @@ export async function POST(req: NextRequest) {
     // ==========================================
     // ROUTE 2: NORMAL CHAT
     // ==========================================
-    // Pass to existing chat AI endpoint
+    // Direct internal API call (bypass fetch)
     try {
-      const chatResponse = await fetch(
-        getAbsoluteUrl('/api/ai/generate'),
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cookie': req.headers.get('cookie') || '',
+      const generateModule = await import('@/app/api/ai/generate/route');
+      
+      const chatRequest = new Request(getAbsoluteUrl('/api/ai/generate'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': req.headers.get('cookie') || '',
+        },
+        body: JSON.stringify({
+          projectId,
+          type: 'text', // Default to text generation
+          prompt: message,
+          projectContext: {
+            name: project.name,
+            industry: project.industry,
+            offer: project.offer,
+            targetAudience: project.targetAudience,
+            tone: project.tone,
+            website: project.website,
+            language: project.language,
           },
-          body: JSON.stringify({
-            projectId,
-            type: 'text', // Default to text generation
-            prompt: message,
-            projectContext: {
-              name: project.name,
-              industry: project.industry,
-              offer: project.offer,
-              targetAudience: project.targetAudience,
-              tone: project.tone,
-              website: project.website,
-              language: project.language,
-            },
-          }),
-        }
-      );
+        }),
+      });
 
+      const chatResponse = await generateModule.POST(chatRequest as any);
       const chatData = await chatResponse.json();
 
       if (!chatResponse.ok) {
