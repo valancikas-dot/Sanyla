@@ -33,6 +33,10 @@ export function detectIntent(message: string): ChatIntent {
     'sugeneruok.*kampanij', // sugeneruok kampaniją
     'planas',        // marketingo planas
     'strategij',     // strategija
+    'sukurk.*reklam', // sukurk reklamą/reklamas
+    'sukurk.*7',     // sukurk 7...
+    'generuok.*reklam', // generuok reklamą
+    'paruošk.*reklam', // paruošk reklamą
   ];
   
   // Check if message contains campaign keywords
