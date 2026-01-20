@@ -191,6 +191,7 @@ export async function POST(req: NextRequest) {
     // Step 4: Create ContentBatch
     const batch = await prisma.content_batches.create({
       data: {
+        id: crypto.randomUUID(),
         name: `7-Day Campaign - ${new Date().toLocaleDateString('lt-LT')}`,
         description: prompt || 'AI-generated 7-day social media campaign',
         projectId: project.id,
