@@ -28,12 +28,12 @@ export async function POST(req: NextRequest) {
     const batch = await prisma.content_batches.findUnique({
       where: { id: batchId },
       include: {
-        items: {
+        content_items: {
           include: {
-            scheduleJobs: true
+            schedule_jobs: true
           }
         },
-        project: true,
+        projects: true,
       }
     });
 
@@ -73,8 +73,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Approve all schedule jobs (change from DRAFT to SCHEDULED + link social account)
-    const scheduleJobIds = batch.items.flatMap(item => 
-      item.scheduleJobs.map(job => job.id)
+    const scheduleJobIds = batch.content_items.flatMap(item => 
+      item.schedule_jobs.map(job => job.id)
     );
 
     await prisma.schedule_jobs.updateMany({
