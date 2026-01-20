@@ -505,13 +505,15 @@ async function saveCampaignToDatabase(
   const savedItems = [];
 
   for (const day of days) {
-    // Calculate scheduled date: startDate + day offset
-    const scheduledDate = addDays(campaignStartDate, day.day);
-    
-    console.log(`📅 Day ${day.day} scheduled for: ${scheduledDate.toISOString()}`);
-    
-    // Instagram/Reels
-    const instagramItem = await prisma.contentItem.create({
+    try {
+      // Calculate scheduled date: startDate + day offset
+      const scheduledDate = addDays(campaignStartDate, day.day);
+      
+      console.log(`📅 Day ${day.day} scheduled for: ${scheduledDate.toISOString()}`);
+      
+      // Instagram/Reels
+      console.log(`  → Creating Instagram item for Day ${day.day}...`);
+      const instagramItem = await prisma.contentItem.create({
       data: {
         type: 'REEL_SCRIPT',
         title: `Day ${day.day} - Instagram Reels - ${day.theme}`,
@@ -537,6 +539,7 @@ async function saveCampaignToDatabase(
 
     // Save as Asset in database
     if (day.instagram.reelsCover && day.instagram.reelsCoverKey) {
+      console.log(`  → Saving Instagram asset for Day ${day.day}...`);
       await prisma.asset.create({
         data: {
           type: 'image',
@@ -549,6 +552,7 @@ async function saveCampaignToDatabase(
     }
 
     // Create schedule job for Instagram with VALIDATED date
+    console.log(`  → Creating Instagram schedule job for Day ${day.day}...`);
     await prisma.scheduleJob.create({
       data: {
         scheduledFor: scheduledDate, // Use validated Date object
@@ -699,6 +703,13 @@ async function saveCampaignToDatabase(
     }
 
     savedItems.push({ day: day.day, theme: day.theme, items: 3 });
+    
+    } catch (error: any) {
+      console.error(`❌ ERROR saving Day ${day.day}:`, error.message);
+      console.error('Full error:', error);
+      // Continue to next day instead of crashing entire campaign
+      throw error; // Re-throw to see in Railway logs
+    }
   }
 
   return savedItems;
