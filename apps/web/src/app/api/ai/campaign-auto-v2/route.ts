@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get project details
-    const project = await prisma.project.findUnique({
+    const project = await prisma.projects.findUnique({
       where: { id: projectId },
       include: { organization: true }
     });

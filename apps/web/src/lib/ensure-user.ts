@@ -12,13 +12,13 @@ export async function ensureUserExists(session: Session | null): Promise<void> {
 
   try {
     // Check if user exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.users.findUnique({
       where: { email: session.user.email },
     });
 
     if (!existingUser) {
       // Create user from session data
-      await prisma.user.create({
+      await prisma.users.create({
         data: {
           email: session.user.email,
           name: session.user.name || session.user.email.split('@')[0],

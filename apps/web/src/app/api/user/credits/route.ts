@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch user's credit information
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: session.user.email },
       select: {
         aiCredits: true,

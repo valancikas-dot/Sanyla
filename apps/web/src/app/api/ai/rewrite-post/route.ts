@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Get user and check credits
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: session.user.email },
       select: { 
         id: true,

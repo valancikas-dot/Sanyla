@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     // PHASE 1B: AI CREDIT CHECK
     // ==========================================
     // Get user with credit information
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { email: session.user.email },
       select: { 
         id: true, 
@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
     // ==========================================
 
     // Get project details
-    const project = await prisma.project.findUnique({
+    const project = await prisma.projects.findUnique({
       where: { id: projectId },
       include: { organization: true }
     });

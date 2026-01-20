@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify user has access to project
-    const project = await prisma.project.findFirst({
+    const project = await prisma.projects.findFirst({
       where: {
         id: projectId,
         organization: {
