@@ -176,8 +176,8 @@ export async function POST(req: NextRequest) {
         // Success! Campaign generated
         const { batchId, campaignId, items, totalDays, creditsRemaining } = campaignData;
         
-        // Construct preview URL
-        const previewUrl = `/dashboard/projects/${projectId}/content-calendar?batch=${batchId}`;
+        // Construct preview URL - use /calendar, not /content-calendar
+        const previewUrl = `/dashboard/projects/${projectId}/calendar?batch=${batchId}`;
 
         // Format start date for display
         const startDate = new Date(startAt);
