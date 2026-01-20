@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     // Get project details
     const project = await prisma.projects.findUnique({
       where: { id: projectId },
-      include: { organization: true }
+      include: { organizations: true }
     });
 
     if (!project) {
