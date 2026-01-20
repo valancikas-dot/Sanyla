@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     const campaignsToday = await prisma.content_batches.count({
       where: {
         projects: {
-          organization: {
+          organizations: {
             memberships: {
               some: { userId: user?.id }
             }
