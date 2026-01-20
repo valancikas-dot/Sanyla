@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Step 4: Create ContentBatch
-    const batch = await prisma.contentBatch.create({
+    const batch = await prisma.content_batches.create({
       data: {
         name: `7-Day Campaign - ${new Date().toLocaleDateString('lt-LT')}`,
         description: prompt || 'AI-generated 7-day social media campaign',
@@ -513,7 +513,7 @@ async function saveCampaignToDatabase(
       
       // Instagram/Reels
       console.log(`  → Creating Instagram item for Day ${day.day}...`);
-      const instagramItem = await prisma.contentItem.create({
+      const instagramItem = await prisma.content_items.create({
       data: {
         type: 'REEL_SCRIPT',
         title: `Day ${day.day} - Instagram Reels - ${day.theme}`,
@@ -553,7 +553,7 @@ async function saveCampaignToDatabase(
 
     // Create schedule job for Instagram with VALIDATED date
     console.log(`  → Creating Instagram schedule job for Day ${day.day}...`);
-    await prisma.scheduleJob.create({
+    await prisma.schedule_jobs.create({
       data: {
         scheduledFor: scheduledDate, // Use validated Date object
         platform: 'META',
@@ -569,7 +569,7 @@ async function saveCampaignToDatabase(
     });
 
     // Facebook
-    const facebookItem = await prisma.contentItem.create({
+    const facebookItem = await prisma.content_items.create({
       data: {
         type: 'POST',
         title: `Day ${day.day} - Facebook - ${day.theme}`,
@@ -604,7 +604,7 @@ async function saveCampaignToDatabase(
       });
     }
 
-    await prisma.scheduleJob.create({
+    await prisma.schedule_jobs.create({
       data: {
         scheduledFor: scheduledDate, // Use validated Date object
         platform: 'META',
@@ -620,7 +620,7 @@ async function saveCampaignToDatabase(
     });
 
     // LinkedIn
-    const linkedinItem = await prisma.contentItem.create({
+    const linkedinItem = await prisma.content_items.create({
       data: {
         type: 'POST',
         title: `Day ${day.day} - LinkedIn - ${day.theme}`,
@@ -655,7 +655,7 @@ async function saveCampaignToDatabase(
       });
     }
 
-    await prisma.scheduleJob.create({
+    await prisma.schedule_jobs.create({
       data: {
         scheduledFor: scheduledDate, // Use validated Date object
         platform: 'LINKEDIN',
@@ -672,7 +672,7 @@ async function saveCampaignToDatabase(
 
     // TikTok (if available)
     if (day.tiktok) {
-      const tiktokItem = await prisma.contentItem.create({
+      const tiktokItem = await prisma.content_items.create({
         data: {
           type: 'POST',
           title: `Day ${day.day} - TikTok - ${day.theme}`,
@@ -687,7 +687,7 @@ async function saveCampaignToDatabase(
         }
       });
 
-      await prisma.scheduleJob.create({
+      await prisma.schedule_jobs.create({
         data: {
           scheduledFor: scheduledDate, // Use validated Date object (NOT day.date!)
           platform: 'TIKTOK',

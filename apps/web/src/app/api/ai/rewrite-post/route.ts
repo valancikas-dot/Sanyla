@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Find ScheduleJob with metrics and contentItem
-    const scheduleJob = await prisma.scheduleJob.findUnique({
+    const scheduleJob = await prisma.schedule_jobs.findUnique({
       where: { id: scheduleJobId },
       include: {
         contentItem: true,
@@ -190,7 +190,7 @@ Rewrite ONLY the hook and CTA to improve engagement.`;
 
     // 8. Create optimized ContentItem (DRAFT)
     const originalTitle = contentItem.title || 'Post';
-    const optimizedContentItem = await prisma.contentItem.create({
+    const optimizedContentItem = await prisma.content_items.create({
       data: {
         type: 'POST',
         title: `${originalTitle} (Optimized)`,

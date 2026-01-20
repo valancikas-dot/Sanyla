@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const campaignsToday = await prisma.contentBatch.count({
+    const campaignsToday = await prisma.content_batches.count({
       where: {
         project: {
           organization: {
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Step 4: Create ContentBatch
-    const batch = await prisma.contentBatch.create({
+    const batch = await prisma.content_batches.create({
       data: {
         name: `7-Day Campaign - ${new Date().toLocaleDateString('lt-LT')}`,
         description: prompt || 'AI-generated 7-day social media campaign',
@@ -390,7 +390,7 @@ async function saveCampaignToDatabase(
     scheduledDate.setDate(scheduledDate.getDate() + day.day);
     
     // Instagram/Reels
-    const instagramItem = await prisma.contentItem.create({
+    const instagramItem = await prisma.content_items.create({
       data: {
         type: 'REEL_SCRIPT',
         title: `Day ${day.day} - Instagram Reels - ${day.theme}`,
@@ -427,7 +427,7 @@ async function saveCampaignToDatabase(
     }
 
     // Create schedule job (DRAFT status)
-    await prisma.scheduleJob.create({
+    await prisma.schedule_jobs.create({
       data: {
         scheduledFor: new Date(`${day.date} ${day.bestTime}`),
         platform: 'META',
@@ -443,7 +443,7 @@ async function saveCampaignToDatabase(
     });
 
     // Facebook (similar pattern)
-    const facebookItem = await prisma.contentItem.create({
+    const facebookItem = await prisma.content_items.create({
       data: {
         type: 'POST',
         title: `Day ${day.day} - Facebook - ${day.theme}`,
@@ -472,7 +472,7 @@ async function saveCampaignToDatabase(
       });
     }
 
-    await prisma.scheduleJob.create({
+    await prisma.schedule_jobs.create({
       data: {
         scheduledFor: new Date(`${day.date} ${day.bestTime}`),
         platform: 'META',
@@ -488,7 +488,7 @@ async function saveCampaignToDatabase(
     });
 
     // LinkedIn (similar pattern)
-    const linkedinItem = await prisma.contentItem.create({
+    const linkedinItem = await prisma.content_items.create({
       data: {
         type: 'POST',
         title: `Day ${day.day} - LinkedIn - ${day.theme}`,
@@ -517,7 +517,7 @@ async function saveCampaignToDatabase(
       });
     }
 
-    await prisma.scheduleJob.create({
+    await prisma.schedule_jobs.create({
       data: {
         scheduledFor: new Date(`${day.date} ${day.bestTime}`),
         platform: 'LINKEDIN',

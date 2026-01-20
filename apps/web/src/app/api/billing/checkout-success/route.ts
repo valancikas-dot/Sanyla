@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     }
 
     // IDEMPOTENCY CHECK: Prevent double-crediting on page refresh
-    const existingLog = await prisma.creditLog.findFirst({
+    const existingLog = await prisma.credit_logs.findFirst({
       where: {
         userId: user.id,
         action: 'CREDITS_PURCHASE',

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get the batch with all content items
-    const batch = await prisma.contentBatch.findUnique({
+    const batch = await prisma.content_batches.findUnique({
       where: { id: batchId },
       include: {
         items: {
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get default Instagram account for this project (auto-connect)
-    const instagramAccount = await prisma.socialAccount.findFirst({
+    const instagramAccount = await prisma.social_accounts.findFirst({
       where: {
         projectId: batch.projectId,
         platform: 'INSTAGRAM',
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     if (modifications && Array.isArray(modifications)) {
       for (const mod of modifications) {
         if (mod.itemId && mod.updates) {
-          await prisma.contentItem.update({
+          await prisma.content_items.update({
             where: { id: mod.itemId },
             data: {
               content: mod.updates.content || undefined,
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       item.scheduleJobs.map(job => job.id)
     );
 
-    await prisma.scheduleJob.updateMany({
+    await prisma.schedule_jobs.updateMany({
       where: {
         id: { in: scheduleJobIds }
       },
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Count approved jobs
-    const approvedCount = await prisma.scheduleJob.count({
+    const approvedCount = await prisma.schedule_jobs.count({
       where: {
         id: { in: scheduleJobIds },
         status: 'SCHEDULED'
@@ -130,7 +130,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Delete the batch (cascade will delete items and schedule jobs)
-    await prisma.contentBatch.delete({
+    await prisma.content_batches.delete({
       where: { id: batchId }
     });
 
