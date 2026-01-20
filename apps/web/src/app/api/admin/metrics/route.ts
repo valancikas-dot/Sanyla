@@ -54,13 +54,13 @@ export async function GET() {
       underperformingCount,
     ] = await Promise.all([
       // A) USERS
-      prisma.user.count(),
+      prisma.users.count(),
       
-      prisma.user.count({
+      prisma.users.count({
         where: { createdAt: { gte: last7d } },
       }),
       
-      prisma.user.count({
+      prisma.users.count({
         where: {
           campaigns: {
             some: {
@@ -71,30 +71,30 @@ export async function GET() {
       }),
 
       // B) CAMPAIGNS
-      prisma.campaign.count({
+      prisma.campaigns.count({
         where: { createdAt: { gte: last7d } },
       }),
       
-      prisma.campaign.count({
+      prisma.campaigns.count({
         where: { createdAt: { gte: last30d } },
       }),
 
       // C) POSTING HEALTH
-      prisma.scheduleJob.count({
+      prisma.schedule_jobs.count({
         where: {
           status: 'SCHEDULED',
           createdAt: { gte: last7d },
         },
       }),
       
-      prisma.scheduleJob.count({
+      prisma.schedule_jobs.count({
         where: {
           status: 'POSTED',
           publishedAt: { gte: last7d },
         },
       }),
       
-      prisma.scheduleJob.count({
+      prisma.schedule_jobs.count({
         where: {
           status: 'FAILED',
           updatedAt: { gte: last7d },
@@ -102,7 +102,7 @@ export async function GET() {
       }),
       
       // Top 10 failure reasons (last 30d)
-      prisma.scheduleJob.groupBy({
+      prisma.schedule_jobs.groupBy({
         by: ['error'],
         where: {
           status: 'FAILED',
