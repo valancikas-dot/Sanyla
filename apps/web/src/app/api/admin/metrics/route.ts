@@ -120,7 +120,7 @@ export async function GET() {
       }),
 
       // D) REVENUE SIGNALS
-      prisma.creditLog.count({
+      prisma.credit_logs.count({
         where: {
           action: 'CREDITS_PURCHASE',
           createdAt: { gte: last30d },
@@ -129,7 +129,7 @@ export async function GET() {
       
       // Sum of revenue (cost is in AI credits, we need to map to EUR)
       // Since CreditLog has 'cost' field, we'll aggregate on that
-      prisma.creditLog.aggregate({
+      prisma.credit_logs.aggregate({
         where: {
           action: 'CREDITS_PURCHASE',
           createdAt: { gte: last30d },
@@ -139,7 +139,7 @@ export async function GET() {
         },
       }),
       
-      prisma.creditLog.count({
+      prisma.credit_logs.count({
         where: {
           action: 'POST_REWRITE',
           createdAt: { gte: last30d },
@@ -148,7 +148,7 @@ export async function GET() {
 
       // E) PERFORMANCE
       // Average engagement rate (last 7d)
-      prisma.socialMetric.aggregate({
+      prisma.social_metrics.aggregate({
         where: {
           collectedAt: { gte: last7d },
         },
@@ -158,7 +158,7 @@ export async function GET() {
       }),
       
       // Underperforming posts (collected in last 48h with engagement < 1%)
-      prisma.socialMetric.count({
+      prisma.social_metrics.count({
         where: {
           collectedAt: { gte: last48h },
           engagementRate: { lt: 0.01 },
